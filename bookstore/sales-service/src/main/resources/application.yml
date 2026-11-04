@@ -1,0 +1,21 @@
+server:
+  port: 8083
+spring:
+  application:
+    name: sales-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/bookstore}
+    username: ${SPRING_DATASOURCE_USERNAME:bookstore}
+    password: ${SPRING_DATASOURCE_PASSWORD:bookstore}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+services:
+  catalog-url: ${CATALOG_URL:http://localhost:8081}
+  customer-url: ${CUSTOMER_URL:http://localhost:8082}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
