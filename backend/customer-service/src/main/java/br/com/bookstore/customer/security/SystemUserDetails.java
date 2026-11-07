@@ -1,6 +1,6 @@
 package br.com.bookstore.customer.security;
 
-import br.com.bookstore.customer.model.Customer;
+import br.com.bookstore.customer.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,25 +9,25 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-// adaptador que mapeia a entidade customer para a interface userdetails do spring security
-public class CustomerUserDetails implements UserDetails {
+// adaptador que mapeia a entidade user do sistema para a interface userdetails do spring security
+public class SystemUserDetails implements UserDetails {
 
-    private final Customer customer;
+    private final User user;
     private final List<GrantedAuthority> authorities;
 
-    public CustomerUserDetails(Customer customer) {
-        this.customer = customer;
-        String role = customer.getRole() != null ? customer.getRole() : "ROLE_CUSTOMER";
+    public SystemUserDetails(User user) {
+        this.user = user;
+        String role = user.getRole() != null ? user.getRole() : "ROLE_SELLER";
         String normalizedRole = role.startsWith("ROLE_") ? role : "ROLE_" + role;
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority(normalizedRole));
     }
 
-    public Customer getCustomer() {
-        return customer;
+    public User getUser() {
+        return user;
     }
 
     public Long getId() {
-        return customer.getId();
+        return user.getId();
     }
 
     @Override
@@ -37,12 +37,12 @@ public class CustomerUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return customer.getPassword();
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return customer.getEmail();
+        return user.getEmail();
     }
 
     @Override
@@ -62,6 +62,6 @@ public class CustomerUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return user.isActive();
     }
 }

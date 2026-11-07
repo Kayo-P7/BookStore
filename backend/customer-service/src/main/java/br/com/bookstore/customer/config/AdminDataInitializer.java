@@ -1,35 +1,46 @@
 package br.com.bookstore.customer.config;
 
-import br.com.bookstore.customer.model.Customer;
-import br.com.bookstore.customer.repository.CustomerRepository;
+import br.com.bookstore.customer.model.User;
+import br.com.bookstore.customer.repository.UserRepository;
 import br.com.bookstore.security.constant.SecurityRoles;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-// inicializador para garantir a existencia de um usuario administrador padrao
+// inicializador para garantir a existencia de operadores padrao (admin e vendedor)
 @Component
 public class AdminDataInitializer implements CommandLineRunner {
 
-    private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public AdminDataInitializer(CustomerRepository customerRepository, PasswordEncoder passwordEncoder) {
-        this.customerRepository = customerRepository;
+    public AdminDataInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) {
         String adminEmail = "admin@bookstore.com";
-        if (!customerRepository.existsByEmail(adminEmail)) {
-            Customer admin = new Customer();
-            admin.setName("Administrador");
-            admin.setEmail(adminEmail);
-            admin.setPassword(passwordEncoder.encode("admin123"));
-            admin.setRole(SecurityRoles.ROLE_ADMIN);
-            admin.setPhone("11999999999");
-            customerRepository.save(admin);
+        if (!userRepository.existsByEmail(adminEmail)) {
+            User admin = new User(
+                    "Administrador",
+                    adminEmail,
+                    passwordEncoder.encode("admin123"),
+                    SecurityRoles.ROLE_ADMIN
+            );
+            userRepository.save(admin);
+        }
+
+        String sellerEmail = "vendedor@bookstore.com";
+        if (!userRepository.existsByEmail(sellerEmail)) {
+            User seller = new User(
+                    "Vendedor Padrao",
+                    sellerEmail,
+                    passwordEncoder.encode("vendedor123"),
+                    SecurityRoles.ROLE_SELLER
+            );
+            userRepository.save(seller);
         }
     }
 }

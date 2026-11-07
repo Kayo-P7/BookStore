@@ -4,9 +4,9 @@ import br.com.bookstore.customer.dto.AuthResponse;
 import br.com.bookstore.customer.dto.LoginRequest;
 import br.com.bookstore.customer.dto.RefreshTokenRequest;
 import br.com.bookstore.customer.dto.RegisterRequest;
-import br.com.bookstore.customer.model.Customer;
-import br.com.bookstore.customer.repository.CustomerRepository;
-import br.com.bookstore.customer.security.CustomerUserDetails;
+import br.com.bookstore.customer.model.User;
+import br.com.bookstore.customer.repository.UserRepository;
+import br.com.bookstore.customer.security.SystemUserDetails;
 import br.com.bookstore.security.constant.SecurityRoles;
 import br.com.bookstore.security.service.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,46 +19,49 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 
-// servico responsavel pelas operacoes de cadastro, autenticacao e renovacao de tokens
+// servico responsavel pelas operacoes de cadastro, autenticacao e renovacao de tokens de operadores
 @Service
 public class AuthService {
 
-    private final CustomerRepository customerRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
-    public AuthService(CustomerRepository customerRepository,
+    public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        AuthenticationManager authenticationManager) {
-        this.customerRepository = customerRepository;
+        this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
     }
 
-    // registra novo cliente no sistema com senha criptografada e emite tokens
+    // registra novo operador no sistema com senha criptografada e emite tokens
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (customerRepository.existsByEmail(request.email())) {
+        if (userRepository.existsByEmail(request.email())) {
             throw new IllegalArgumentException("E-mail ja cadastrado no sistema");
         }
 
-        Customer customer = new Customer();
-        customer.setName(request.name());
-        customer.setEmail(request.email());
-        customer.setPassword(passwordEncoder.encode(request.password()));
-        customer.setRole(SecurityRoles.ROLE_CUSTOMER);
-        customer.setPhone(request.phone());
-        customer.setCep(request.cep());
-        customer.setStreet(request.street());
-        customer.setNeighborhood(request.neighborhood());
-        customer.setCity(request.city());
-        customer.setState(request.state());
+        String assignedRole = request.role() != null && !request.role().isBlank()
+                ? request.role()
+                : SecurityRoles.ROLE_SELLER;
 
-        Customer saved = customerRepository.save(customer);
-        CustomerUserDetails userDetails = new CustomerUserDetails(saved);
+        if (!assignedRole.startsWith("ROLE_")) {
+            assignedRole = "ROLE_" + assignedRole;
+        }
+
+        User user = new User(
+                request.name(),
+                request.email(),
+                passwordEncoder.encode(request.password()),
+                assignedRole
+        );
+
+        User saved = userRepository.save(user);
+        SystemUserDetails userDetails = new SystemUserDetails(saved);
 
         Map<String, Object> claims = buildClaims(saved);
 
@@ -75,31 +78,31 @@ public class AuthService {
         );
     }
 
-    // autentica usuario via gerenciador de autenticacao e gera tokens de sessao
+    // autentica operador via gerenciador de autenticacao e gera tokens de sessao
     public AuthResponse login(LoginRequest request) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
 
-        CustomerUserDetails userDetails = (CustomerUserDetails) auth.getPrincipal();
-        Customer customer = userDetails.getCustomer();
+        SystemUserDetails userDetails = (SystemUserDetails) auth.getPrincipal();
+        User user = userDetails.getUser();
 
-        Map<String, Object> claims = buildClaims(customer);
+        Map<String, Object> claims = buildClaims(user);
 
-        String accessToken = jwtService.generateToken(customer.getEmail(), userDetails.getAuthorities(), claims);
-        String refreshToken = jwtService.generateRefreshToken(customer.getEmail());
+        String accessToken = jwtService.generateToken(user.getEmail(), userDetails.getAuthorities(), claims);
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         return new AuthResponse(
                 accessToken,
                 refreshToken,
-                customer.getId(),
-                customer.getName(),
-                customer.getEmail(),
-                customer.getRole()
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
         );
     }
 
-    // valida token de atualizacao e emite novo token de acesso preservando o refresh
+    // valida token de atualizacao e emite novo token de acesso
     public AuthResponse refresh(RefreshTokenRequest request) {
         String refreshToken = request.refreshToken();
         if (!jwtService.isTokenValid(refreshToken)) {
@@ -112,33 +115,33 @@ public class AuthService {
         }
 
         String email = jwtService.extractUsername(refreshToken);
-        Customer customer = customerRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario associado ao token nao encontrado"));
 
-        CustomerUserDetails userDetails = new CustomerUserDetails(customer);
+        SystemUserDetails userDetails = new SystemUserDetails(user);
 
-        Map<String, Object> claims = buildClaims(customer);
+        Map<String, Object> claims = buildClaims(user);
 
-        String newAccessToken = jwtService.generateToken(customer.getEmail(), userDetails.getAuthorities(), claims);
+        String newAccessToken = jwtService.generateToken(user.getEmail(), userDetails.getAuthorities(), claims);
 
         return new AuthResponse(
                 newAccessToken,
                 refreshToken,
-                customer.getId(),
-                customer.getName(),
-                customer.getEmail(),
-                customer.getRole()
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
         );
     }
 
     // constroi claims adicionais de forma segura contra valores nulos
-    private Map<String, Object> buildClaims(Customer customer) {
+    private Map<String, Object> buildClaims(User user) {
         Map<String, Object> claims = new HashMap<>();
-        if (customer.getId() != null) {
-            claims.put("customerId", customer.getId());
+        if (user.getId() != null) {
+            claims.put("userId", user.getId());
         }
-        if (customer.getName() != null) {
-            claims.put("name", customer.getName());
+        if (user.getName() != null) {
+            claims.put("name", user.getName());
         }
         return claims;
     }
