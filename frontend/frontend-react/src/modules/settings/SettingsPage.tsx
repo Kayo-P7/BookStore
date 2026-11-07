@@ -141,18 +141,19 @@ export function SettingsPage() {
                                 <div key={srv.key} className="p-4 rounded-2xl glass-card border border-border/80 space-y-2">
                                     <div className="flex items-center justify-between">
                                         <span className="font-bold text-xs text-foreground truncate">{srv.name}</span>
-                                        <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-medium px-2 py-0.5 rounded-md border border-border/70 bg-muted/40">
+                                        <div className="inline-flex items-center text-[11px] font-mono font-medium px-2 py-0.5 rounded-md border border-border/70 bg-muted/40">
                                             <span
                                                 className={cn(
-                                                    'w-1.5 h-1.5 rounded-full',
+                                                    'capitalize',
                                                     ping.status === 'online'
-                                                        ? 'bg-emerald-500'
+                                                        ? 'text-emerald-700'
                                                         : ping.status === 'offline'
-                                                        ? 'bg-destructive'
-                                                        : 'bg-muted-foreground'
+                                                        ? 'text-destructive'
+                                                        : 'text-muted-foreground'
                                                 )}
-                                            />
-                                            <span className="text-foreground capitalize">{ping.status}</span>
+                                            >
+                                                {ping.status}
+                                            </span>
                                         </div>
                                     </div>
                                     <p className="text-[11px] text-muted-foreground font-mono">Porta :{srv.port}</p>
