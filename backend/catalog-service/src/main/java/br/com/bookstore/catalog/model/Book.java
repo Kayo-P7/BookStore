@@ -1,4 +1,4 @@
-package br.com.bookstore.catalog;
+package br.com.bookstore.catalog.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;

@@ -1,4 +1,4 @@
-package br.com.bookstore.sales;
+package br.com.bookstore.sales.model;
 
 import jakarta.persistence.*;
 
