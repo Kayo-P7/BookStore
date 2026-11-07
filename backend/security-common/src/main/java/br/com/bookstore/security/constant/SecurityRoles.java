@@ -4,10 +4,12 @@ package br.com.bookstore.security.constant;
 public final class SecurityRoles {
 
     public static final String ROLE_ADMIN = "ROLE_ADMIN";
+    public static final String ROLE_SELLER = "ROLE_SELLER";
     public static final String ROLE_CUSTOMER = "ROLE_CUSTOMER";
     public static final String ROLE_INTERNAL = "ROLE_INTERNAL";
 
     public static final String ADMIN = "ADMIN";
+    public static final String SELLER = "SELLER";
     public static final String CUSTOMER = "CUSTOMER";
     public static final String INTERNAL = "INTERNAL";
 
