@@ -12,6 +12,7 @@ import org.springframework.web.client.RestClient;
 import java.util.List;
 import java.util.Map;
 
+// servico de regras de negocio para operacoes de clientes
 @Service
 public class CustomerService {
 
@@ -24,20 +25,24 @@ public class CustomerService {
         this.mapper = mapper;
     }
 
+    // retorna todos os clientes cadastrados em formato de resposta
     public List<CustomerResponse> findAll() {
         return mapper.toResponseList(repo.findAll());
     }
 
+    // busca cliente por identificador e converte para dto
     public CustomerResponse findById(Long id) {
         return mapper.toResponse(findEntityById(id));
     }
 
+    // cadastra novo cliente a partir dos dados recebidos
     @Transactional
     public CustomerResponse save(CustomerRequest request) {
         Customer customer = mapper.toEntity(request);
         return mapper.toResponse(repo.save(customer));
     }
 
+    // atualiza cliente existente preservando seu identificador
     @Transactional
     public CustomerResponse update(Long id, CustomerRequest request) {
         Customer customer = findEntityById(id);
@@ -45,11 +50,13 @@ public class CustomerService {
         return mapper.toResponse(repo.save(customer));
     }
 
+    // remove cliente pelo identificador informado
     @Transactional
     public void delete(Long id) {
         repo.delete(findEntityById(id));
     }
 
+    // consulta endereco pelo cep utilizando servico externo viacep
     public Map findCep(String cep) {
         return viaCep.get()
                 .uri("/ws/{cep}/json/", cep)
@@ -57,6 +64,7 @@ public class CustomerService {
                 .body(Map.class);
     }
 
+    // busca a entidade no banco de dados lancando excecao caso nao exista
     public Customer findEntityById(Long id) {
         return repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));

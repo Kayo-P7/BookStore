@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
+// servico de regras de negocio para operacoes e orquestracao de vendas
 @Service
 public class SaleService {
 
@@ -32,10 +33,12 @@ public class SaleService {
         this.customers = RestClient.create(customerUrl);
     }
 
+    // retorna todas as vendas realizadas em formato de resposta
     public List<SaleResponse> findAll() {
         return mapper.toResponseList(repo.findAll());
     }
 
+    // valida integracao com clientes e catalogo, abate estoque e registra venda
     @Transactional
     public SaleResponse create(SaleRequest request) {
         if (request.quantity() == null || request.quantity() < 1) {

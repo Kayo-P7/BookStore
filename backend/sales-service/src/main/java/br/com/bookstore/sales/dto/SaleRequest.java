@@ -3,6 +3,7 @@ package br.com.bookstore.sales.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
+// dto com dados de entrada para criacao de nova venda
 public record SaleRequest(
     @NotNull(message = "ID do cliente é obrigatório")
     Long customerId,

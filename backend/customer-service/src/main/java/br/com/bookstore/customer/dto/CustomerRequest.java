@@ -3,6 +3,7 @@ package br.com.bookstore.customer.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+// dto com dados de entrada para criacao e atualizacao de cliente
 public record CustomerRequest(
     @NotBlank(message = "O nome é obrigatório")
     String name,

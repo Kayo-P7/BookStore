@@ -3,6 +3,7 @@ package br.com.bookstore.customer.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+// entidade jpa que representa a tabela de clientes no banco de dados
 @Entity
 @Table(name = "customers")
 public class Customer {

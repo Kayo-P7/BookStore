@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 
+// entidade jpa que representa a tabela de vendas no banco de dados
 @Entity
 @Table(name = "sales")
 public class Sale {

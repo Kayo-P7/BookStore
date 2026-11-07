@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 
+// entidade jpa que representa a tabela de livros no banco de dados
 @Entity
 @Table(name = "books")
 public class Book {

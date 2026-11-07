@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
+// dto com dados de entrada para criacao e atualizacao de livro
 public record BookRequest(
     @NotBlank(message = "O título é obrigatório")
     String title,

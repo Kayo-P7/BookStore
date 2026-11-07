@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import java.math.BigDecimal;
 import java.util.List;
 
+// controlador graphql para consultas e mutacoes de livros
 @Controller
 public class GraphQlController {
 
@@ -20,21 +21,25 @@ public class GraphQlController {
         this.service = service;
     }
 
+    // consulta graphql para listar todos os livros
     @QueryMapping
     public List<BookResponse> books() {
         return service.findAll();
     }
 
+    // consulta graphql para buscar livros por titulo
     @QueryMapping
     public List<BookResponse> searchBooks(@Argument String title) {
         return service.search(title);
     }
 
+    // consulta graphql para buscar livro por identificador
     @QueryMapping
     public BookResponse book(@Argument Long id) {
         return service.findById(id);
     }
 
+    // mutacao graphql para cadastrar novo livro
     @MutationMapping
     public BookResponse createBook(@Argument String title, @Argument String authors, @Argument String isbn,
                                    @Argument String publisher, @Argument String description,
