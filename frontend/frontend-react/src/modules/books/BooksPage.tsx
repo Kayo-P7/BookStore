@@ -181,13 +181,7 @@ export function BooksPage() {
                                         )}
                                         {visibleColumns.includes('status') && (
                                             <TableCell className="text-right">
-                                                <div className="inline-flex items-center justify-end gap-1.5 text-xs font-medium">
-                                                    <span
-                                                        className={cn(
-                                                            'w-1.5 h-1.5 rounded-full shrink-0',
-                                                            inStock ? 'bg-emerald-500' : 'bg-destructive'
-                                                        )}
-                                                    />
+                                                <div className="inline-flex items-center justify-end text-xs font-medium">
                                                     <span className={inStock ? 'text-foreground' : 'text-muted-foreground'}>
                                                         {inStock ? 'Disponível' : 'Esgotado'}
                                                     </span>
