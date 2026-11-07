@@ -96,7 +96,7 @@ cleanup() {
         fi
     done
     for port in 8081 8082 8083; do
-        fuser -k "${port}/tcp" 2>/dev/null || true
+        fuser -k -9 "${port}/tcp" 2>/dev/null || true
     done
     echo -e "${GREEN}[BookStore] Todos os microsservicos backend foram finalizados.${NC}"
     exit 0
@@ -114,7 +114,7 @@ wait_for_health() {
 
     echo -ne "   ${BLUE}[...] Aguardando ${name} responder na porta ${port}...${NC}"
     while [ $elapsed -lt $timeout ]; do
-        if ! kill -0 "$pid" 2>/dev/null; then
+        if [ -n "$pid" ] && ! kill -0 "$pid" 2>/dev/null; then
             echo -e "\r${RED}[X] ${name} falhou ao iniciar (processo encerrou).${NC}"
             tail -n 20 "$log_file" 2>/dev/null || true
             exit 1
@@ -133,41 +133,56 @@ wait_for_health() {
     return 0
 }
 
-start_service() {
-    local name=$1
-    local port=$2
-    local log_file="logs/${name}.log"
+PID_CATALOG=""
+PID_CUSTOMER=""
+PID_SALES=""
 
-    echo -e "${CYAN}-> Iniciando ${name} (logs em ${log_file})...${NC}"
-    mvn spring-boot:run -f backend/pom.xml -pl "$name" > "$log_file" 2>&1 &
-    local pid=$!
-    PIDS+=("$pid")
-    echo "$pid"
+start_catalog() {
+    echo -e "${CYAN}-> Iniciando catalog-service na porta 8081 (logs em logs/catalog-service.log)...${NC}"
+    mvn spring-boot:run -f backend/pom.xml -pl catalog-service > logs/catalog-service.log 2>&1 &
+    PID_CATALOG=$!
+    PIDS+=("$PID_CATALOG")
 }
+
+start_customer() {
+    echo -e "${CYAN}-> Iniciando customer-service na porta 8082 (logs em logs/customer-service.log)...${NC}"
+    mvn spring-boot:run -f backend/pom.xml -pl customer-service > logs/customer-service.log 2>&1 &
+    PID_CUSTOMER=$!
+    PIDS+=("$PID_CUSTOMER")
+}
+
+start_sales() {
+    echo -e "${CYAN}-> Iniciando sales-service na porta 8083 (logs em logs/sales-service.log)...${NC}"
+    mvn spring-boot:run -f backend/pom.xml -pl sales-service > logs/sales-service.log 2>&1 &
+    PID_SALES=$!
+    PIDS+=("$PID_SALES")
+}
+
+set +e
 
 if [ "$TARGET_SERVICE" = "all" ] || [ -z "$TARGET_SERVICE" ]; then
     echo -e "${BLUE}[Fase 1/2] Iniciando servicos base: catalog-service e customer-service...${NC}"
-    PID_CATALOG=$(start_service "catalog-service" 8081)
-    PID_CUSTOMER=$(start_service "customer-service" 8082)
+    start_catalog
+    start_customer
 
     wait_for_health "catalog-service" 8081 "$PID_CATALOG"
     wait_for_health "customer-service" 8082 "$PID_CUSTOMER"
 
     echo -e "\n${BLUE}[Fase 2/2] Iniciando servico dependente: sales-service...${NC}"
-    PID_SALES=$(start_service "sales-service" 8083)
+    start_sales
     wait_for_health "sales-service" 8083 "$PID_SALES"
 
 elif [ "$TARGET_SERVICE" = "catalog" ]; then
-    PID=$(start_service "catalog-service" 8081)
-    wait_for_health "catalog-service" 8081 "$PID"
+    start_catalog
+    wait_for_health "catalog-service" 8081 "$PID_CATALOG"
 
 elif [ "$TARGET_SERVICE" = "customer" ]; then
-    PID=$(start_service "customer-service" 8082)
-    wait_for_health "customer-service" 8082 "$PID"
+    start_customer
+    wait_for_health "customer-service" 8082 "$PID_CUSTOMER"
 
 elif [ "$TARGET_SERVICE" = "sales" ]; then
-    PID=$(start_service "sales-service" 8083)
-    wait_for_health "sales-service" 8083 "$PID"
+    start_sales
+    wait_for_health "sales-service" 8083 "$PID_SALES"
 fi
 
 echo -e "\n${GREEN}${BOLD}[BookStore] Microsservicos prontos:${NC}"
