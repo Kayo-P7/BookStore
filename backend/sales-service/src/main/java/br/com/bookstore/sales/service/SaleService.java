@@ -38,32 +38,27 @@ public class SaleService {
         return mapper.toResponseList(repo.findAll());
     }
 
-    // valida integracao com clientes e catalogo, abate estoque e registra venda
+    // valida integracao com clientes, abate estoque e registra venda em chamada unica
     @Transactional
     public SaleResponse create(SaleRequest request) {
         if (request.quantity() == null || request.quantity() < 1) {
-            throw new IllegalArgumentException("Quantidade inválida");
+            throw new IllegalArgumentException("quantidade invalida");
         }
         customers.get()
                 .uri("/api/customers/{id}", request.customerId())
                 .retrieve()
                 .toBodilessEntity();
 
-        Map book = catalog.get()
-                .uri("/api/catalog/books/{id}", request.bookId())
+        Map book = catalog.post()
+                .uri("/api/catalog/books/{id}/decrease-stock?quantity={q}", request.bookId(), request.quantity())
                 .retrieve()
                 .body(Map.class);
 
         if (book == null || book.get("price") == null) {
-            throw new IllegalStateException("Livro não encontrado ou sem preço informado");
+            throw new IllegalStateException("livro nao encontrado ou sem preco informado");
         }
 
         BigDecimal price = new BigDecimal(book.get("price").toString());
-
-        catalog.post()
-                .uri("/api/catalog/books/{id}/decrease-stock?quantity={q}", request.bookId(), request.quantity())
-                .retrieve()
-                .toBodilessEntity();
 
         Sale sale = new Sale(request.customerId(), request.bookId(), request.quantity(), price);
         return mapper.toResponse(repo.save(sale));
