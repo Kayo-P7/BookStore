@@ -4,6 +4,7 @@ import br.com.bookstore.customer.dto.CustomerRequest;
 import br.com.bookstore.customer.dto.CustomerResponse;
 import br.com.bookstore.customer.service.CustomerService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public class CustomerController {
 
     // cria novo registro de cliente
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public CustomerResponse create(@Valid @RequestBody CustomerRequest request) {
         return service.save(request);
     }
@@ -46,6 +48,7 @@ public class CustomerController {
 
     // exclui registro de cliente por id
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
