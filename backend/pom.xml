@@ -11,6 +11,7 @@
  <packaging>pom</packaging>
 
  <modules>
+  <module>security-common</module>
   <module>catalog-service</module>
   <module>customer-service</module>
   <module>sales-service</module>
@@ -21,6 +22,7 @@
   <spring-boot.version>3.4.5</spring-boot.version>
   <mapstruct.version>1.6.3</mapstruct.version>
   <spring-dotenv.version>4.0.0</spring-dotenv.version>
+  <jjwt.version>0.12.6</jjwt.version>
   <maven.compiler.release>21</maven.compiler.release>
   <maven.compiler.source>21</maven.compiler.source>
   <maven.compiler.target>21</maven.compiler.target>
@@ -42,6 +44,28 @@
     <version>${spring-boot.version}</version>
     <type>pom</type>
     <scope>import</scope>
+   </dependency>
+   <dependency>
+    <groupId>br.com.bookstore</groupId>
+    <artifactId>security-common</artifactId>
+    <version>${project.version}</version>
+   </dependency>
+   <dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-api</artifactId>
+    <version>${jjwt.version}</version>
+   </dependency>
+   <dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-impl</artifactId>
+    <version>${jjwt.version}</version>
+    <scope>runtime</scope>
+   </dependency>
+   <dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt-jackson</artifactId>
+    <version>${jjwt.version}</version>
+    <scope>runtime</scope>
    </dependency>
    <dependency>
     <groupId>org.mapstruct</groupId>
@@ -69,6 +93,12 @@
       </path>
      </annotationProcessorPaths>
     </configuration>
+   </plugin>
+
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>3.5.2</version>
    </plugin>
 
    <plugin>
