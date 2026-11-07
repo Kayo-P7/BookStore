@@ -64,10 +64,11 @@ export function Sidebar({
 
     return (
         <>
-            {/* desktop sidebar retratil */}
+            {/* desktop sidebar retratil com transicao elastica */}
             <aside
                 className={cn(
-                    'hidden md:flex flex-col fixed top-16 bottom-0 left-0 z-30 glass-sidebar transition-all duration-300 ease-in-out',
+                    'hidden md:flex flex-col fixed top-16 bottom-0 left-0 z-30 glass-sidebar',
+                    'transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]',
                     collapsed ? 'w-20' : 'w-72'
                 )}
             >
@@ -87,7 +88,7 @@ export function Sidebar({
                                 to={item.to}
                                 className={({ isActive }) =>
                                     cn(
-                                        'group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-150',
+                                        'group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-150 active:scale-[0.98]',
                                         isActive
                                             ? 'bg-white text-[#171717] border border-[#e5e5e5] shadow-2xs'
                                             : 'text-[#525252] hover:text-[#171717] hover:bg-[#f5f5f5]',
@@ -102,7 +103,7 @@ export function Sidebar({
                                         {isActive && (
                                             <span
                                                 className={cn(
-                                                    'absolute top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-[#059669]',
+                                                    'absolute top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-[#059669] animate-message-liquid',
                                                     collapsed ? 'left-1' : 'left-1.5'
                                                 )}
                                             />
@@ -149,17 +150,17 @@ export function Sidebar({
                 </div>
             </aside>
 
-            {/* mobile sidebar (drawer deslizante com overlay) */}
+            {/* mobile sidebar (drawer deslizante com overlay com fisica de mola) */}
             {mobileOpen && (
-                <div className="md:hidden fixed inset-0 z-50 flex animate-in fade-in duration-200">
+                <div className="md:hidden fixed inset-0 z-50 flex animate-dialog-fade">
                     {/* overlay escurecido com desfoque */}
                     <div
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
                         onClick={onCloseMobile}
                     />
 
-                    {/* drawer deslizante da esquerda */}
-                    <div className="relative w-72 max-w-[85vw] h-full glass-card border-r border-border/80 p-5 flex flex-col z-10 animate-in slide-in-from-left duration-300">
+                    {/* drawer deslizante da esquerda com animacao de mola */}
+                    <div className="relative w-72 max-w-[85vw] h-full glass-card border-r border-border/80 p-5 flex flex-col z-10 animate-drawer-spring shadow-2xl">
                         <div className="flex items-center justify-between pb-4 border-b border-border/50">
                             <span className="font-bold text-sm text-foreground flex items-center gap-2">
                                 <BookOpen className="w-5 h-5 text-primary" />

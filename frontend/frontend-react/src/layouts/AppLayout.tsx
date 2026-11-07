@@ -49,14 +49,15 @@ export function AppLayout() {
                     onCloseMobile={() => setMobileOpen(false)}
                 />
 
-                {/* area central de conteudo responsiva com transicao fluida */}
+                {/* area central de conteudo responsiva com transicao fluida com spring physics */}
                 <main
                     className={cn(
-                        'flex-1 min-w-0 transition-all duration-300 ease-in-out px-4 sm:px-8 py-8',
+                        'flex-1 min-w-0 px-4 sm:px-8 py-8',
+                        'transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]',
                         collapsed ? 'md:ml-20' : 'md:ml-72'
                     )}
                 >
-                    <div key={location.pathname} className="w-full animate-liquid-in">
+                    <div key={location.pathname} className="w-full animate-page-spring">
                         <Outlet />
                     </div>
                 </main>
