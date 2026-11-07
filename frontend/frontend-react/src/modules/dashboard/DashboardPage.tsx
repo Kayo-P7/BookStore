@@ -265,14 +265,8 @@ export function DashboardPage() {
                                                     {formatCurrency(book.price)}
                                                 </TableCell>
                                                 <TableCell className="text-right text-xs">
-                                                    <div className="inline-flex items-center justify-end gap-1.5 font-mono">
-                                                        <span
-                                                            className={cn(
-                                                                'w-1.5 h-1.5 rounded-full shrink-0',
-                                                                inStock ? 'bg-emerald-500' : 'bg-destructive'
-                                                            )}
-                                                        />
-                                                        <span className="font-medium text-foreground">
+                                                    <div className="inline-flex items-center justify-end gap-1 font-mono">
+                                                        <span className={cn('font-medium', inStock ? 'text-foreground' : 'text-destructive')}>
                                                             {book.stock}
                                                         </span>
                                                         <span className="text-[11px] text-muted-foreground">
