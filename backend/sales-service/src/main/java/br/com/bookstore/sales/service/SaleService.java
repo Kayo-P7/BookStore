@@ -5,6 +5,7 @@ import br.com.bookstore.sales.dto.SaleResponse;
 import br.com.bookstore.sales.mapper.SaleMapper;
 import br.com.bookstore.sales.model.Sale;
 import br.com.bookstore.sales.repository.SaleRepository;
+import br.com.bookstore.security.interceptor.SecurityTokenRelayInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,12 +26,19 @@ public class SaleService {
 
     public SaleService(SaleRepository repo,
                        SaleMapper mapper,
+                       SecurityTokenRelayInterceptor relayInterceptor,
                        @Value("${services.catalog-url}") String catalogUrl,
                        @Value("${services.customer-url}") String customerUrl) {
         this.repo = repo;
         this.mapper = mapper;
-        this.catalog = RestClient.create(catalogUrl);
-        this.customers = RestClient.create(customerUrl);
+        this.catalog = RestClient.builder()
+                .baseUrl(catalogUrl)
+                .requestInterceptor(relayInterceptor)
+                .build();
+        this.customers = RestClient.builder()
+                .baseUrl(customerUrl)
+                .requestInterceptor(relayInterceptor)
+                .build();
     }
 
     // retorna todas as vendas realizadas em formato de resposta
