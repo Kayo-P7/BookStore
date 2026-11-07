@@ -21,6 +21,8 @@ export function BooksPage() {
         { key: 'id', label: 'ID' },
         { key: 'title', label: 'Título' },
         { key: 'authors', label: 'Autores' },
+        { key: 'isbn', label: 'ISBN' },
+        { key: 'publisher', label: 'Editora' },
         { key: 'price', label: 'Preço' },
         { key: 'stock', label: 'Estoque' },
         { key: 'status', label: 'Status' }
@@ -78,7 +80,9 @@ export function BooksPage() {
         const q = searchTerm.toLowerCase();
         return (
             b.title?.toLowerCase().includes(q) ||
-            b.authors?.toLowerCase().includes(q)
+            b.authors?.toLowerCase().includes(q) ||
+            b.isbn?.toLowerCase().includes(q) ||
+            b.publisher?.toLowerCase().includes(q)
         );
     });
 
@@ -127,6 +131,8 @@ export function BooksPage() {
                                 {visibleColumns.includes('id') && <TableHead className="w-20">ID</TableHead>}
                                 {visibleColumns.includes('title') && <TableHead>Título</TableHead>}
                                 {visibleColumns.includes('authors') && <TableHead>Autor(es)</TableHead>}
+                                {visibleColumns.includes('isbn') && <TableHead>ISBN</TableHead>}
+                                {visibleColumns.includes('publisher') && <TableHead>Editora</TableHead>}
                                 {visibleColumns.includes('price') && <TableHead>Preço</TableHead>}
                                 {visibleColumns.includes('stock') && <TableHead className="text-right">Estoque</TableHead>}
                                 {visibleColumns.includes('status') && <TableHead className="text-right">Status</TableHead>}
@@ -150,6 +156,16 @@ export function BooksPage() {
                                         {visibleColumns.includes('authors') && (
                                             <TableCell className="text-muted-foreground text-xs">
                                                 {book.authors || 'Não informado'}
+                                            </TableCell>
+                                        )}
+                                        {visibleColumns.includes('isbn') && (
+                                            <TableCell className="font-mono text-xs text-muted-foreground">
+                                                {book.isbn || '—'}
+                                            </TableCell>
+                                        )}
+                                        {visibleColumns.includes('publisher') && (
+                                            <TableCell className="text-xs text-muted-foreground">
+                                                {book.publisher || '—'}
                                             </TableCell>
                                         )}
                                         {visibleColumns.includes('price') && (
