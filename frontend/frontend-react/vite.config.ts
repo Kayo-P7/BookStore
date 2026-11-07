@@ -1,4 +1,7 @@
 import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '../../', '');
@@ -9,6 +12,15 @@ export default defineConfig(({ mode }) => {
     const salesUrl = `http://localhost:${env.SALES_SERVICE_PORT || 8083}`;
 
     return {
+        plugins: [
+            react(),
+            tailwindcss()
+        ],
+        resolve: {
+            alias: {
+                '@': path.resolve(process.cwd(), './src')
+            }
+        },
         server: {
             host: '0.0.0.0',
             port: reactPort,

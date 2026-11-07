@@ -1,0 +1,283 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+}
+
+/* espaco de cores perceptualmente uniforme oklch para tema claro e escuro */
+:root {
+  --background: oklch(0.985 0.008 155);
+  --foreground: oklch(0.18 0.03 155);
+
+  --card: oklch(1 0 0 / 0.78);
+  --card-foreground: oklch(0.18 0.03 155);
+
+  --popover: oklch(1 0 0 / 0.95);
+  --popover-foreground: oklch(0.18 0.03 155);
+
+  /* verde esmeralda vibrante e elegante */
+  --primary: oklch(0.55 0.17 155);
+  --primary-hover: oklch(0.49 0.17 155);
+  --primary-foreground: oklch(0.99 0 0);
+
+  --secondary: oklch(0.95 0.015 155);
+  --secondary-foreground: oklch(0.24 0.03 155);
+
+  --muted: oklch(0.94 0.012 155);
+  --muted-foreground: oklch(0.48 0.03 155);
+
+  --accent: oklch(0.92 0.03 155);
+  --accent-foreground: oklch(0.22 0.04 155);
+
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.88 0.015 155 / 0.7);
+  --input: oklch(0.88 0.015 155 / 0.85);
+  --ring: oklch(0.55 0.17 155);
+
+  --radius: 0.75rem;
+
+  --bg-gradient: linear-gradient(135deg, oklch(0.99 0.006 155) 0%, oklch(0.955 0.018 155) 100%);
+  --sidebar-w-expanded: 18rem;
+  --sidebar-w-collapsed: 5rem;
+}
+
+.dark,
+[data-theme="dark"] {
+  --background: oklch(0.11 0.022 155);
+  --foreground: oklch(0.96 0.01 155);
+
+  --card: oklch(0.15 0.025 155 / 0.72);
+  --card-foreground: oklch(0.96 0.01 155);
+
+  --popover: oklch(0.14 0.025 155 / 0.95);
+  --popover-foreground: oklch(0.96 0.01 155);
+
+  /* menta esmeralda luminoso para contraste no tema escuro */
+  --primary: oklch(0.68 0.185 155);
+  --primary-hover: oklch(0.74 0.185 155);
+  --primary-foreground: oklch(0.10 0.03 155);
+
+  --secondary: oklch(0.19 0.025 155);
+  --secondary-foreground: oklch(0.96 0.01 155);
+
+  --muted: oklch(0.18 0.02 155);
+  --muted-foreground: oklch(0.65 0.025 155);
+
+  --accent: oklch(0.20 0.035 155);
+  --accent-foreground: oklch(0.96 0.01 155);
+
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+
+  --border: oklch(0.25 0.025 155 / 0.7);
+  --input: oklch(0.25 0.025 155 / 0.85);
+  --ring: oklch(0.68 0.185 155);
+
+  --bg-gradient: linear-gradient(135deg, oklch(0.12 0.022 155) 0%, oklch(0.08 0.015 155) 100%);
+}
+
+* {
+  border-color: var(--border);
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--foreground);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* utilitarios de glassmorphism */
+.glass-card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid oklch(1 1 1 / 0.18);
+  box-shadow: 0 10px 30px -10px oklch(0 0 0 / 0.06);
+}
+
+.dark .glass-card,
+[data-theme="dark"] .glass-card {
+  border: 1px solid oklch(1 1 1 / 0.08);
+  box-shadow: 0 12px 36px -10px oklch(0 0 0 / 0.35);
+}
+
+.glass-header {
+  background: oklch(var(--card) / 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.glass-sidebar {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid var(--border);
+}
+
+.glass-pill {
+  background: oklch(var(--card) / 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+}
+
+/* efeito de elevacao interativa hover-lift */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -10px oklch(0.55 0.17 155 / 0.18);
+}
+
+.hover-lift:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* esferas dinamicas com desfoque gaussiano para auth layout */
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -40px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+}
+
+.animate-blob {
+  animation: blob 8s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* malha vetorial de fundo para auth layout */
+.bg-grid-pattern {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, oklch(0.55 0.17 155 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.55 0.17 155 / 0.06) 1px, transparent 1px);
+}
+
+.dark .bg-grid-pattern,
+[data-theme="dark"] .bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, oklch(0.68 0.185 155 / 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.68 0.185 155 / 0.05) 1px, transparent 1px);
+}
+
+/* animacoes suaves de fade in e fade out para avisos de tela */
+@keyframes noticeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes noticeFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+.notice-fade-in {
+  animation: noticeFadeIn 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.notice-fade-out {
+  animation: noticeFadeOut 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* animacoes de modais e dropdowns no padrao apple easing */
+@keyframes dialogFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialogPop {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-dialog-fade {
+  animation: dialogFade 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-dialog-pop {
+  animation: dialogPop 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-dropdown-fade {
+  animation: dropdownFade 170ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
