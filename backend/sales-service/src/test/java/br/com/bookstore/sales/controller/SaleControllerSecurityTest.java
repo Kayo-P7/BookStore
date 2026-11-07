@@ -69,9 +69,19 @@ class SaleControllerSecurityTest {
     }
 
     @Test
-    @DisplayName("deve permitir listagem de vendas para usuario autenticado")
-    @WithMockUser(roles = SecurityRoles.CUSTOMER)
-    void shouldAllowSalesListingForAuthenticatedUser() throws Exception {
+    @DisplayName("deve permitir listagem de vendas para vendedor autenticado com papel SELLER")
+    @WithMockUser(roles = SecurityRoles.SELLER)
+    void shouldAllowSalesListingForSellerRole() throws Exception {
+        when(saleService.findAll()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/sales"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("deve permitir listagem de vendas para administrador autenticado com papel ADMIN")
+    @WithMockUser(roles = SecurityRoles.ADMIN)
+    void shouldAllowSalesListingForAdminRole() throws Exception {
         when(saleService.findAll()).thenReturn(List.of());
 
         mockMvc.perform(get("/api/sales"))
@@ -90,9 +100,9 @@ class SaleControllerSecurityTest {
     }
 
     @Test
-    @DisplayName("deve permitir criacao de venda para cliente autenticado com papel CUSTOMER")
-    @WithMockUser(roles = SecurityRoles.CUSTOMER)
-    void shouldAllowSaleCreationForCustomerRole() throws Exception {
+    @DisplayName("deve permitir criacao de venda para vendedor com papel SELLER")
+    @WithMockUser(roles = SecurityRoles.SELLER)
+    void shouldAllowSaleCreationForSellerRole() throws Exception {
         SaleRequest request = new SaleRequest(1L, 2L, 1);
         SaleResponse response = new SaleResponse(
                 10L, 1L, 2L, 1, new BigDecimal("100.00"), new BigDecimal("100.00"), Instant.now()
@@ -121,5 +131,25 @@ class SaleControllerSecurityTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("deve proibir criacao de venda para papel nao autorizado retornando 403")
+    @WithMockUser(roles = "OTHER")
+    void shouldForbidSaleCreationForUnauthorizedRole() throws Exception {
+        SaleRequest request = new SaleRequest(1L, 2L, 1);
+
+        mockMvc.perform(post("/api/sales")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("deve proibir listagem de vendas para papel nao autorizado retornando 403")
+    @WithMockUser(roles = "OTHER")
+    void shouldForbidSalesListingForUnauthorizedRole() throws Exception {
+        mockMvc.perform(get("/api/sales"))
+                .andExpect(status().isForbidden());
     }
 }

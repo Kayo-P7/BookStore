@@ -20,8 +20,8 @@ public class SalesSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, SecurityConfigTemplate template) throws Exception {
         return template.build(http, auth -> auth
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/sales").hasAnyRole(SecurityRoles.CUSTOMER, SecurityRoles.ADMIN)
-                .requestMatchers(HttpMethod.GET, "/api/sales/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/sales").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
+                .requestMatchers(HttpMethod.GET, "/api/sales/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
                 .anyRequest().authenticated()
         );
     }
