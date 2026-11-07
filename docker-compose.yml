@@ -15,7 +15,7 @@ services:
       retries: 20
 
   catalog-service:
-    build: {context: ., dockerfile: Dockerfile.service, args: {MODULE: catalog-service}}
+    build: {context: ./backend, dockerfile: Dockerfile.service, args: {MODULE: catalog-service}}
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
       SPRING_DATASOURCE_USERNAME: bookstore
@@ -23,7 +23,7 @@ services:
     depends_on: {postgres: {condition: service_healthy}}
 
   customer-service:
-    build: {context: ., dockerfile: Dockerfile.service, args: {MODULE: customer-service}}
+    build: {context: ./backend, dockerfile: Dockerfile.service, args: {MODULE: customer-service}}
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
       SPRING_DATASOURCE_USERNAME: bookstore
@@ -31,7 +31,7 @@ services:
     depends_on: {postgres: {condition: service_healthy}}
 
   sales-service:
-    build: {context: ., dockerfile: Dockerfile.service, args: {MODULE: sales-service}}
+    build: {context: ./backend, dockerfile: Dockerfile.service, args: {MODULE: sales-service}}
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
       SPRING_DATASOURCE_USERNAME: bookstore
@@ -47,16 +47,16 @@ services:
     depends_on: [catalog-service, customer-service, sales-service]
 
   react-frontend:
-    build: ./frontend-react
+    build: ./frontend/frontend-react
     ports: ["5175:5173"]
     volumes:
-      - ./frontend-react:/app
+      - ./frontend/frontend-react:/app
       - /app/node_modules
     command: npm run dev -- --host 0.0.0.0
     depends_on: [gateway]
 
   vue-frontend:
-    build: ./frontend-vue
+    build: ./frontend/frontend-vue
     ports: ["5174:5174"]
     depends_on: [gateway]
 
