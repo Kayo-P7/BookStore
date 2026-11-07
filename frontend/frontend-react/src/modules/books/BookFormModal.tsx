@@ -9,7 +9,6 @@ import {
     BookOpen,
     Check,
     X,
-    Sparkles,
     ChevronDown,
     ChevronUp
 } from 'lucide-react';
@@ -107,6 +106,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
 
         setIsSearching(true);
         setHasSearched(true);
+        setSelectedGoogleBook(null);
         setFormError(null);
 
         try {
@@ -135,6 +135,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
 
         clearErrors(['title', 'authors']);
         setSearchResults([]);
+        setHasSearched(false);
 
         if (book.isbn || book.publisher || book.description) {
             setShowExtraDetails(true);
@@ -208,9 +209,9 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                 {/* secao de consulta externa: google books */}
                 <div className="rounded-xl border border-[#e5e5e5] bg-[#fafafa] p-3.5 space-y-2.5">
                     <div className="flex items-center justify-between">
-                        <label className="text-xs font-semibold text-[#171717] flex items-center gap-1.5">
-                            <Sparkles className="w-3.5 h-3.5 text-[#059669]" />
-                            <span>Buscar no Google Books</span>
+                        <label className="text-xs font-medium text-[#171717] flex items-center gap-1.5">
+                            <BookOpen className="w-3.5 h-3.5 text-[#059669]" />
+                            <span className="font-semibold">Buscar no Google Books</span>
                             <span className="text-[11px] font-normal text-[#737373]">(opcional)</span>
                         </label>
                         {selectedGoogleBook && (
@@ -263,27 +264,30 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                         </Button>
                     </form>
 
-                    {/* feedback visual de livro selecionado do google */}
+                    {/* feedback visual de livro selecionado do google com orientacao amigavel */}
                     {selectedGoogleBook && (
-                        <div className="flex items-center gap-2.5 p-2 rounded-lg bg-emerald-50/70 border border-emerald-200/80 text-xs text-[#059669] animate-in fade-in duration-200">
+                        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-emerald-50/80 border border-emerald-200/80 text-xs text-[#059669] animate-in fade-in duration-200">
                             {selectedGoogleBook.thumbnail ? (
                                 <img
                                     src={selectedGoogleBook.thumbnail}
                                     alt={selectedGoogleBook.title}
-                                    className="w-7 h-10 object-cover rounded shadow-2xs shrink-0"
+                                    className="w-8 h-12 object-cover rounded shadow-2xs shrink-0"
                                 />
                             ) : (
-                                <div className="w-7 h-10 rounded bg-emerald-100 flex items-center justify-center shrink-0">
-                                    <BookOpen className="w-3.5 h-3.5 text-[#059669]" />
+                                <div className="w-8 h-12 rounded bg-emerald-100 flex items-center justify-center shrink-0">
+                                    <BookOpen className="w-4 h-4 text-[#059669]" />
                                 </div>
                             )}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1 font-semibold truncate">
+                            <div className="flex-1 min-w-0 space-y-1">
+                                <div className="flex items-center gap-1.5 font-semibold truncate">
                                     <Check className="w-3.5 h-3.5 shrink-0 text-[#059669]" />
                                     <span className="truncate">{selectedGoogleBook.title}</span>
                                 </div>
-                                <p className="text-[11px] text-[#059669]/80 truncate">
-                                    {selectedGoogleBook.authors || 'Autor desconhecido'} {selectedGoogleBook.publishedYear ? `• ${selectedGoogleBook.publishedYear}` : ''}
+                                <p className="text-[11px] text-[#059669]/90 truncate">
+                                    {selectedGoogleBook.authors || 'Autor não informado'} {selectedGoogleBook.publishedYear ? `• ${selectedGoogleBook.publishedYear}` : ''}
+                                </p>
+                                <p className="text-[11px] text-[#047857] pt-1 border-t border-emerald-200/60 leading-relaxed">
+                                    Campos básicos preenchidos via Google Books. Por favor, complete os campos restantes (como preço e estoque) manualmente abaixo.
                                 </p>
                             </div>
                         </div>
@@ -353,10 +357,15 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                     )}
 
                     {/* aviso amigavel caso nada seja encontrado na base do google */}
-                    {hasSearched && !isSearching && searchResults.length === 0 && (
-                        <div className="p-2.5 rounded-lg bg-amber-50/80 border border-amber-200/80 text-amber-800 text-xs flex items-center gap-2 animate-in fade-in duration-200">
-                            <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
-                            <span>Nenhum livro localizado na base do Google Books. Você pode preencher manualmente abaixo.</span>
+                    {hasSearched && !isSearching && searchResults.length === 0 && !selectedGoogleBook && (
+                        <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
+                            <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+                            <div className="space-y-0.5">
+                                <p className="font-medium text-amber-900">Nenhum livro localizado na base do Google Books</p>
+                                <p className="text-[11px] text-amber-800/90 leading-relaxed">
+                                    Não encontramos este título na busca externa. Sem problemas! Você pode preencher todos os dados do livro manualmente nos campos abaixo.
+                                </p>
+                            </div>
                         </div>
                     )}
                 </div>
