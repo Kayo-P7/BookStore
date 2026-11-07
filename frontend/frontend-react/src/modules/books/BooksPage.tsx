@@ -61,7 +61,7 @@ export function BooksPage() {
         );
     }
 
-    async function handleAddBook(data: { title: string; authors: string; price: number; stock: number }) {
+    async function handleAddBook(data: Omit<Book, 'id'>) {
         try {
             await bookService.create(data);
             showNotice('Livro cadastrado com sucesso no catálogo.', 'success');
