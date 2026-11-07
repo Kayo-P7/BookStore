@@ -22,9 +22,11 @@ public class CustomerSecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/customers/cep/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/customers").permitAll()
+                .requestMatchers("/api/users/**").hasRole(SecurityRoles.ADMIN)
+                .requestMatchers(HttpMethod.POST, "/api/customers").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
+                .requestMatchers(HttpMethod.PUT, "/api/customers/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
                 .requestMatchers(HttpMethod.DELETE, "/api/customers/**").hasRole(SecurityRoles.ADMIN)
-                .requestMatchers("/api/customers/**").authenticated()
+                .requestMatchers("/api/customers/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
                 .anyRequest().authenticated()
         );
     }
