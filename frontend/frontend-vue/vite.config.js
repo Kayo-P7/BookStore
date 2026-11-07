@@ -3,11 +3,11 @@ import vue from '@vitejs/plugin-vue';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '../../', '');
-    const gatewayUrl = env.GATEWAY_URL;
-    const vuePort = parseInt(env.VUE_PORT, 10);
-    const catalogUrl = env.CATALOG_URL;
-    const customerUrl = env.CUSTOMER_URL;
-    const salesUrl = `http://localhost:${env.SALES_SERVICE_PORT}`;
+    const gatewayUrl = process.env.GATEWAY_URL;
+    const vuePort = parseInt(env.VUE_PORT || '5174', 10);
+    const catalogUrl = env.CATALOG_URL || `http://localhost:${env.CATALOG_SERVICE_PORT || 8081}`;
+    const customerUrl = env.CUSTOMER_URL || `http://localhost:${env.CUSTOMER_SERVICE_PORT || 8082}`;
+    const salesUrl = `http://localhost:${env.SALES_SERVICE_PORT || 8083}`;
 
     return {
         plugins: [vue()],
