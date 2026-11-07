@@ -49,6 +49,8 @@ services:
   react-frontend:
     build: ./frontend/frontend-react
     ports: ["5175:5173"]
+    environment:
+      - GATEWAY_URL=http://gateway:80
     volumes:
       - ./frontend/frontend-react:/app
       - /app/node_modules
@@ -58,6 +60,8 @@ services:
   vue-frontend:
     build: ./frontend/frontend-vue
     ports: ["5174:5174"]
+    environment:
+      - GATEWAY_URL=http://gateway:80
     depends_on: [gateway]
 
 volumes:
