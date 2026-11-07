@@ -20,10 +20,19 @@
   <java.version>21</java.version>
   <spring-boot.version>3.4.5</spring-boot.version>
   <mapstruct.version>1.6.3</mapstruct.version>
+  <spring-dotenv.version>4.0.0</spring-dotenv.version>
   <maven.compiler.release>21</maven.compiler.release>
   <maven.compiler.source>21</maven.compiler.source>
   <maven.compiler.target>21</maven.compiler.target>
  </properties>
+
+ <dependencies>
+  <dependency>
+   <groupId>me.paulschwarz</groupId>
+   <artifactId>spring-dotenv</artifactId>
+   <version>${spring-dotenv.version}</version>
+  </dependency>
+ </dependencies>
 
  <dependencyManagement>
   <dependencies>
@@ -66,6 +75,9 @@
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-maven-plugin</artifactId>
     <version>${spring-boot.version}</version>
+    <configuration>
+     <workingDirectory>${project.basedir}/../..</workingDirectory>
+    </configuration>
     <executions>
      <execution>
       <goals>
