@@ -122,9 +122,9 @@ export function CustomersPage() {
             />
 
             <RecordsTableLayout
-                title="Usuários & Clientes"
-                description={`Total de ${customers.length} leitores e clientes cadastrados no acervo`}
-                actionLabel="Novo Usuário"
+                title="Gestão de Clientes"
+                description={`Total de ${customers.length} clientes e contatos cadastrados`}
+                actionLabel="Novo Cliente"
                 onAction={() => {
                     setEditingCustomer(null);
                     setIsModalOpen(true);

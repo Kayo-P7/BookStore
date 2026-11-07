@@ -101,8 +101,8 @@ export function BooksPage() {
             />
 
             <RecordsTableLayout
-                title="Catálogo de Livros"
-                description={`Gerenciamento de títulos, inventário e preços (${books.length} livros registrados)`}
+                title="Gestão de Catálogo"
+                description={`Gerenciamento de títulos, inventário e preços (${books.length} títulos cadastrados)`}
                 actionLabel="Novo Livro"
                 onAction={() => setIsModalOpen(true)}
                 searchTerm={searchTerm}

@@ -65,10 +65,10 @@ export function DashboardPage() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-                        Visão Geral
+                        Painel Executivo
                     </h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Métricas consolidadas de vendas, clientes e estoque da livraria.
+                        Indicadores consolidados de faturamento, catálogo e clientes da livraria.
                     </p>
                 </div>
 
@@ -228,7 +228,7 @@ export function DashboardPage() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => navigate('/books')}
+                            onClick={() => navigate('/catalog')}
                             className="gap-1 text-xs text-muted-foreground hover:text-foreground"
                         >
                             <span>Ver acervo</span>
