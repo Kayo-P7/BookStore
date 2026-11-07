@@ -14,7 +14,10 @@ public class Customer {
     private String name;
     @Email
     @NotBlank
+    @Column(unique = true)
     private String email;
+    private String password;
+    private String role;
     private String phone;
     private String cep;
     private String street;
@@ -35,6 +38,14 @@ public class Customer {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getRole() {
+        return role;
     }
 
     public String getPhone() {
@@ -67,6 +78,14 @@ public class Customer {
 
     public void setEmail(String v) {
         email = v;
+    }
+
+    public void setPassword(String v) {
+        password = v;
+    }
+
+    public void setRole(String v) {
+        role = v;
     }
 
     public void setPhone(String v) {

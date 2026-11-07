@@ -14,8 +14,10 @@ import java.util.List;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CustomerMapper {
 
-    // converte dto de requisicao para a entidade customer
+    // converte dto de requisicao para a entidade customer protegendo campos criticos
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "role", ignore = true)
     Customer toEntity(CustomerRequest request);
 
     // converte entidade customer para dto de resposta
@@ -24,7 +26,9 @@ public interface CustomerMapper {
     // converte lista de entidades customer para lista de dtos de resposta
     List<CustomerResponse> toResponseList(List<Customer> customers);
 
-    // atualiza os campos da entidade customer a partir do dto de requisicao
+    // atualiza os campos da entidade customer a partir do dto de requisicao preservando credenciais
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "password", ignore = true)
+    @Mapping(target = "role", ignore = true)
     void updateEntityFromRequest(CustomerRequest request, @MappingTarget Customer customer);
 }

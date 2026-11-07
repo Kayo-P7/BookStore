@@ -5,6 +5,7 @@ public record CustomerResponse(
     Long id,
     String name,
     String email,
+    String role,
     String phone,
     String cep,
     String street,
