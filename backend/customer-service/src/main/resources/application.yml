@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: ${CUSTOMER_SERVICE_PORT}
 spring:
   application:
     name: customer-service

@@ -1,5 +1,5 @@
 server:
-  port: 8083
+  port: ${SALES_SERVICE_PORT}
 spring:
   application:
     name: sales-service

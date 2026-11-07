@@ -1,68 +1,107 @@
-
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: bookstore
-      POSTGRES_USER: bookstore
-      POSTGRES_PASSWORD: bookstore
-    ports: ["5440:5432"]
-    volumes: ["postgres_data:/var/lib/postgresql/data"]
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bookstore -d bookstore"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 20
 
   catalog-service:
-    build: {context: ./backend, dockerfile: Dockerfile.service, args: {MODULE: catalog-service}}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.service
+      args:
+        MODULE: catalog-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
-      SPRING_DATASOURCE_USERNAME: bookstore
-      SPRING_DATASOURCE_PASSWORD: bookstore
-    depends_on: {postgres: {condition: service_healthy}}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      CATALOG_SERVICE_PORT: ${CATALOG_SERVICE_PORT}
+    ports:
+      - "${CATALOG_SERVICE_PORT}:${CATALOG_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   customer-service:
-    build: {context: ./backend, dockerfile: Dockerfile.service, args: {MODULE: customer-service}}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.service
+      args:
+        MODULE: customer-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
-      SPRING_DATASOURCE_USERNAME: bookstore
-      SPRING_DATASOURCE_PASSWORD: bookstore
-    depends_on: {postgres: {condition: service_healthy}}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      CUSTOMER_SERVICE_PORT: ${CUSTOMER_SERVICE_PORT}
+    ports:
+      - "${CUSTOMER_SERVICE_PORT}:${CUSTOMER_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   sales-service:
-    build: {context: ./backend, dockerfile: Dockerfile.service, args: {MODULE: sales-service}}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.service
+      args:
+        MODULE: sales-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bookstore
-      SPRING_DATASOURCE_USERNAME: bookstore
-      SPRING_DATASOURCE_PASSWORD: bookstore
-      CATALOG_URL: http://catalog-service:8081
-      CUSTOMER_URL: http://customer-service:8082
-    depends_on: [catalog-service, customer-service]
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SALES_SERVICE_PORT: ${SALES_SERVICE_PORT}
+      CATALOG_URL: ${CATALOG_URL}
+      CUSTOMER_URL: ${CUSTOMER_URL}
+    ports:
+      - "${SALES_SERVICE_PORT}:${SALES_SERVICE_PORT}"
+    depends_on:
+      - catalog-service
+      - customer-service
 
   gateway:
     image: nginx:1.27-alpine
-    ports: ["8080:80"]
-    volumes: ["./gateway/nginx.conf:/etc/nginx/nginx.conf:ro"]
-    depends_on: [catalog-service, customer-service, sales-service]
+    ports:
+      - "${GATEWAY_PORT}:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - catalog-service
+      - customer-service
+      - sales-service
 
   react-frontend:
     build: ./frontend/frontend-react
-    ports: ["5175:5173"]
+    ports:
+      - "${REACT_PORT}:5173"
     environment:
-      - GATEWAY_URL=http://gateway:80
+      - GATEWAY_URL=${GATEWAY_URL}
+      - REACT_PORT=${REACT_PORT}
     volumes:
       - ./frontend/frontend-react:/app
       - /app/node_modules
     command: npm run dev -- --host 0.0.0.0
-    depends_on: [gateway]
+    depends_on:
+      - gateway
 
   vue-frontend:
     build: ./frontend/frontend-vue
-    ports: ["5174:5174"]
+    ports:
+      - "${VUE_PORT}:5174"
     environment:
-      - GATEWAY_URL=http://gateway:80
-    depends_on: [gateway]
+      - GATEWAY_URL=${GATEWAY_URL}
+      - VUE_PORT=${VUE_PORT}
+    depends_on:
+      - gateway
 
 volumes:
   postgres_data:
