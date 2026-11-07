@@ -200,7 +200,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
             <div className="space-y-4">
                 {/* alerta de erro geral do modal */}
                 {formError && (
-                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-in fade-in duration-150">
+                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-message-liquid">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{formError}</span>
                     </div>
@@ -266,7 +266,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
 
                     {/* feedback visual de livro selecionado do google com orientacao amigavel */}
                     {selectedGoogleBook && (
-                        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-emerald-50/80 border border-emerald-200/80 text-xs text-[#059669] animate-in fade-in duration-200">
+                        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-emerald-50/80 border border-emerald-200/80 text-xs text-[#059669] animate-message-liquid">
                             {selectedGoogleBook.thumbnail ? (
                                 <img
                                     src={selectedGoogleBook.thumbnail}
@@ -295,7 +295,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
 
                     {/* lista de resultados retornados pela busca */}
                     {searchResults.length > 0 && (
-                        <div className="max-h-52 overflow-y-auto rounded-lg border border-[#e5e5e5] bg-white divide-y divide-[#f0f0f0] shadow-sm animate-in fade-in duration-200">
+                        <div className="max-h-52 overflow-y-auto rounded-lg border border-[#e5e5e5] bg-white divide-y divide-[#f0f0f0] shadow-sm animate-message-liquid">
                             <div className="px-3 py-1.5 bg-[#fafafa] text-[11px] font-medium text-[#737373] sticky top-0 border-b border-[#e5e5e5] flex justify-between items-center">
                                 <span>{searchResults.length} {searchResults.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}</span>
                                 <span className="text-[10px]">Clique para autopreencher</span>
@@ -358,7 +358,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
 
                     {/* aviso amigavel caso nada seja encontrado na base do google */}
                     {hasSearched && !isSearching && searchResults.length === 0 && !selectedGoogleBook && (
-                        <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-2.5 animate-in fade-in duration-200">
+                        <div className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/80 text-amber-900 text-xs flex items-start gap-2.5 animate-message-liquid">
                             <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
                             <div className="space-y-0.5">
                                 <p className="font-medium text-amber-900">Nenhum livro localizado na base do Google Books</p>

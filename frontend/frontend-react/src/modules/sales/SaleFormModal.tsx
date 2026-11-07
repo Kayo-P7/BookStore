@@ -129,7 +129,7 @@ export function SaleFormModal({
             <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                 {/* alerta de erro interno do modal */}
                 {formError && (
-                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-in fade-in duration-150">
+                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-message-liquid">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{formError}</span>
                     </div>
