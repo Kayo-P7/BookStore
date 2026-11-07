@@ -124,6 +124,14 @@ class BookControllerSecurityTest {
     }
 
     @Test
+    @DisplayName("deve proibir exclusao de livro por perfil VENDEDOR retornando 403")
+    @WithMockUser(roles = SecurityRoles.SELLER)
+    void shouldDenyBookDeletionForSellerRole() throws Exception {
+        mockMvc.perform(delete("/api/catalog/books/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("deve permitir reducao de estoque para perfil VENDEDOR")
     @WithMockUser(roles = SecurityRoles.SELLER)
     void shouldAllowDecreaseStockForSeller() throws Exception {
@@ -136,5 +144,27 @@ class BookControllerSecurityTest {
 
         mockMvc.perform(post("/api/catalog/books/1/decrease-stock?quantity=1"))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("deve permitir reducao de estoque para perfil ADMIN")
+    @WithMockUser(roles = SecurityRoles.ADMIN)
+    void shouldAllowDecreaseStockForAdmin() throws Exception {
+        BookResponse response = new BookResponse(
+                1L, "Clean Code", "Robert C. Martin", "9780132350884", "Prentice Hall",
+                "Handbook of agile software", new BigDecimal("120.00"), 8
+        );
+
+        when(bookService.decreaseStock(eq(1L), eq(2))).thenReturn(response);
+
+        mockMvc.perform(post("/api/catalog/books/1/decrease-stock?quantity=2"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("deve negar reducao de estoque sem autenticacao retornando 401")
+    void shouldDenyDecreaseStockWithoutAuthentication() throws Exception {
+        mockMvc.perform(post("/api/catalog/books/1/decrease-stock?quantity=1"))
+                .andExpect(status().isUnauthorized());
     }
 }
