@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
 
-# ==============================================================================
-# BookStore — Script de Inicializacao dos Frontends (React e Vue.js)
-# ==============================================================================
-
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Definicao de cores para o terminal
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
@@ -18,11 +13,9 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-echo -e "${CYAN}${BOLD}=====================================================${NC}"
-echo -e "${CYAN}${BOLD}         BookStore — Interfaces Frontend             ${NC}"
-echo -e "${CYAN}${BOLD}=====================================================${NC}"
+echo -e "${CYAN}${BOLD}[BookStore] Inicializacao dos Frontends SPA${NC}"
 
-# 1. Verificacao de ferramentas necessarias
+# validacao de ferramentas no path
 if ! command -v node &>/dev/null; then
     echo -e "${RED}[X] Erro: Node.js nao foi encontrado no PATH.${NC}"
     exit 1
@@ -35,7 +28,7 @@ fi
 
 TARGET_FRONTEND="${1:-all}"
 
-# 2. Verificacao de portas ocupadas
+# verificacao de portas ocupadas
 check_port() {
     local port=$1
     local pid
@@ -66,7 +59,7 @@ case "$TARGET_FRONTEND" in
         ;;
 esac
 
-# 3. Verificacao de dependencias (node_modules)
+# verificacao e instalacao de dependencias
 ensure_dependencies() {
     local dir=$1
     local name=$2
@@ -89,7 +82,6 @@ cleanup() {
             kill "$pid" 2>/dev/null || true
         fi
     done
-    # Encerramento preventivo via porta
     for port in 5173 5174; do
         fuser -k "${port}/tcp" 2>/dev/null || true
     done
@@ -99,7 +91,6 @@ cleanup() {
 
 trap cleanup SIGINT SIGTERM EXIT
 
-# 4. Inicializacao dos frontends
 start_react() {
     ensure_dependencies "frontend/frontend-react" "frontend-react"
     echo -e "${BLUE}-> Iniciando React (Vite) na porta 5173...${NC}"
@@ -139,18 +130,14 @@ elif [ "$TARGET_FRONTEND" = "vue" ]; then
     start_vue
 fi
 
-echo -e "\n${GREEN}${BOLD}=====================================================${NC}"
-echo -e "${GREEN}${BOLD}       Frontends Prontos para Navegacao!             ${NC}"
-echo -e "${GREEN}${BOLD}=====================================================${NC}"
+echo -e "\n${GREEN}${BOLD}[BookStore] Frontends prontos:${NC}"
 if [ "$TARGET_FRONTEND" = "all" ] || [ "$TARGET_FRONTEND" = "both" ] || [ "$TARGET_FRONTEND" = "react" ]; then
-    echo -e " • React SPA: ${CYAN}http://localhost:5173${NC} (logs: logs/frontend-react.log)"
+    echo -e " • React SPA:     ${CYAN}http://localhost:5173${NC} (logs: logs/frontend-react.log)"
 fi
 if [ "$TARGET_FRONTEND" = "all" ] || [ "$TARGET_FRONTEND" = "both" ] || [ "$TARGET_FRONTEND" = "vue" ]; then
-    echo -e " • Vue SPA:   ${CYAN}http://localhost:5174${NC} (logs: logs/frontend-vue.log)"
+    echo -e " • Vue SPA:       ${CYAN}http://localhost:5174${NC} (logs: logs/frontend-vue.log)"
 fi
-echo -e "-----------------------------------------------------"
-echo -e " Acompanhar logs: ${YELLOW}tail -f logs/frontend-*.log${NC}"
-echo -e "-----------------------------------------------------"
+echo -e " • Acompanhar:    ${YELLOW}tail -f logs/frontend-*.log${NC}"
 echo -e "${YELLOW}Pressione Ctrl+C para encerrar.${NC}\n"
 
 wait

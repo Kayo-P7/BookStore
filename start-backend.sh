@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
 
-# ==============================================================================
-# BookStore — Script de Inicializacao dos Microsservicos Backend
-# ==============================================================================
-
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Definicao de cores para o terminal
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
@@ -18,11 +13,9 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-echo -e "${CYAN}${BOLD}=====================================================${NC}"
-echo -e "${CYAN}${BOLD}       BookStore — Microsservicos Backend            ${NC}"
-echo -e "${CYAN}${BOLD}=====================================================${NC}"
+echo -e "${CYAN}${BOLD}[BookStore] Inicializacao dos Microsservicos Backend${NC}"
 
-# 1. Verificacao de arquivo .env
+# validacao do arquivo de ambiente
 if [ ! -f ".env" ]; then
     if [ -f ".env.example" ]; then
         echo -e "${YELLOW}[!] Arquivo .env nao encontrado. Criando copia a partir de .env.example...${NC}"
@@ -34,7 +27,7 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
-# 2. Verificacao de ferramentas necessarias
+# validacao de ferramentas no path
 if ! command -v java &>/dev/null; then
     echo -e "${RED}[X] Erro: Java JDK nao foi encontrado no PATH.${NC}"
     exit 1
@@ -45,7 +38,7 @@ if ! command -v mvn &>/dev/null; then
     exit 1
 fi
 
-# 3. Verificacao de conexao com o PostgreSQL
+# verificacao de conectividade com o postgresql
 DB_PORT=$(grep -E '^POSTGRES_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r' || true)
 [ -z "$DB_PORT" ] && DB_PORT=5432
 if ! (echo > /dev/tcp/localhost/"$DB_PORT") 2>/dev/null; then
@@ -53,7 +46,7 @@ if ! (echo > /dev/tcp/localhost/"$DB_PORT") 2>/dev/null; then
     echo -e "${YELLOW}    Certifique-se de que o banco de dados esteja ativo antes de iniciar os servicos.${NC}\n"
 fi
 
-# 4. Verificacao de portas ocupadas
+# verificacao de portas ocupadas
 check_port() {
     local port=$1
     local pid
@@ -102,7 +95,6 @@ cleanup() {
             kill "$pid" 2>/dev/null || true
         fi
     done
-    # Encerramento preventivo via porta caso reste processo filho
     for port in 8081 8082 8083; do
         fuser -k "${port}/tcp" 2>/dev/null || true
     done
@@ -124,9 +116,7 @@ wait_for_health() {
     while [ $elapsed -lt $timeout ]; do
         if ! kill -0 "$pid" 2>/dev/null; then
             echo -e "\r${RED}[X] ${name} falhou ao iniciar (processo encerrou).${NC}"
-            echo -e "${YELLOW}--- Ultimas 20 linhas de ${log_file} ---${NC}"
             tail -n 20 "$log_file" 2>/dev/null || true
-            echo -e "${YELLOW}-----------------------------------------${NC}"
             exit 1
         fi
 
@@ -180,19 +170,12 @@ elif [ "$TARGET_SERVICE" = "sales" ]; then
     wait_for_health "sales-service" 8083 "$PID"
 fi
 
-echo -e "\n${GREEN}${BOLD}=====================================================${NC}"
-echo -e "${GREEN}${BOLD}   Microsservicos Backend Prontos para Uso!          ${NC}"
-echo -e "${GREEN}${BOLD}=====================================================${NC}"
-echo -e " • Catalog Service:   ${CYAN}http://localhost:8081${NC} (Health: /actuator/health | GraphQL: /graphql)"
-echo -e " • Customer Service:  ${CYAN}http://localhost:8082${NC} (Health: /actuator/health)"
-echo -e " • Sales Service:     ${CYAN}http://localhost:8083${NC} (Health: /actuator/health)"
-echo -e "-----------------------------------------------------"
-echo -e " Arquivos de log:     ${BOLD}logs/catalog-service.log${NC}"
-echo -e "                      ${BOLD}logs/customer-service.log${NC}"
-echo -e "                      ${BOLD}logs/sales-service.log${NC}"
-echo -e " Acompanhar em tempo real: ${YELLOW}tail -f logs/*.log${NC}"
-echo -e "-----------------------------------------------------"
+echo -e "\n${GREEN}${BOLD}[BookStore] Microsservicos prontos:${NC}"
+echo -e " • Catalog Service:  ${CYAN}http://localhost:8081${NC} (Health: /actuator/health | GraphQL: /graphql)"
+echo -e " • Customer Service: ${CYAN}http://localhost:8082${NC} (Health: /actuator/health)"
+echo -e " • Sales Service:    ${CYAN}http://localhost:8083${NC} (Health: /actuator/health)"
+echo -e " • Logs salvos em:   logs/catalog-service.log, logs/customer-service.log, logs/sales-service.log"
+echo -e " • Acompanhar logs:  ${YELLOW}tail -f logs/*.log${NC}"
 echo -e "${YELLOW}Pressione Ctrl+C para encerrar todos os servicos.${NC}\n"
 
-# Aguarda os processos filhos em background
 wait
