@@ -12,6 +12,110 @@ Sistema distribuído baseado em microsserviços para gerenciamento acadêmico de
 
 ---
 
+## Arquitetura do Sistema
+
+```mermaid
+flowchart TD
+    subgraph Clients ["Camada de Apresentacao / Frontends"]
+        ReactApp["Frontend React (Vite)<br/>:5173 local / :5175 docker"]
+        VueApp["Frontend Vue (Vite)<br/>:5174"]
+    end
+
+    subgraph EntryPoint ["Gateway e Proxy Reverso"]
+        Gateway["Nginx API Gateway / Vercel Proxy<br/>:8080"]
+    end
+
+    subgraph Services ["Microsservicos Backend (Spring Boot 3.4 / Java 21)"]
+        Catalog["Catalog Service<br/>:8081<br/>REST & GraphQL (/graphql)"]
+        Customer["Customer Service<br/>:8082<br/>Gestao de Clientes"]
+        Sales["Sales Service<br/>:8083<br/>Orquestracao de Vendas"]
+        Security["security-common<br/>Modulo compartilhado de seguranca"]
+    end
+
+    subgraph DB ["Camada de Persistencia"]
+        Postgres[("PostgreSQL 16 / Neon<br/>:5432 (bookstore)")]
+    end
+
+    subgraph ExternalAPIs ["Integracoes e APIs Externas"]
+        GoogleBooks["Google Books API"]
+        ViaCEP["ViaCEP"]
+        QRServer["QR Server API"]
+        NagerDate["Nager.Date"]
+    end
+
+    %% Requisicoes de clientes
+    ReactApp -->|Requisicoes /api/* e /graphql| Gateway
+    VueApp -->|Requisicoes /api/*| Gateway
+    VueApp -.->|Consulta Feriados| NagerDate
+
+    %% Roteamento do Gateway
+    Gateway -->|/api/catalog/* e /graphql| Catalog
+    Gateway -->|/api/customers/*| Customer
+    Gateway -->|/api/sales/*| Sales
+
+    %% Orquestracao interna de Vendas
+    Sales -->|1. Valida Cliente (GET /api/customers/:id)| Customer
+    Sales -->|2. Abate Estoque (POST /api/catalog/books/:id/decrease-stock)| Catalog
+
+    %% Dependencia compartilhada
+    Catalog -.->|Utiliza| Security
+    Customer -.->|Utiliza| Security
+    Sales -.->|Utiliza| Security
+
+    %% Integracoes externas
+    Catalog -.->|Busca Obras| GoogleBooks
+    Catalog -.->|Gera QR Code| QRServer
+    Customer -.->|Busca Endereco por CEP| ViaCEP
+
+    %% Persistencia
+    Catalog -->|JPA / Hibernate| Postgres
+    Customer -->|JPA / Hibernate| Postgres
+    Sales -->|JPA / Hibernate| Postgres
+```
+
+---
+
+## Fluxo de Orquestração de Vendas
+
+Diagrama de sequência exibindo a comunicação síncrona entre os microsserviços durante o registro de um pedido:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Usuario / Cliente
+    participant React as Frontend React
+    participant Gateway as API Gateway (Nginx)
+    participant Sales as Sales Service (:8083)
+    participant Customer as Customer Service (:8082)
+    participant Catalog as Catalog Service (:8081)
+    participant DB as PostgreSQL
+
+    User->>React: Solicita criacao de venda (bookId, customerId, quantity)
+    React->>Gateway: POST /api/sales
+    Gateway->>Sales: Roteia requisicao para sales-service
+    activate Sales
+    Sales->>Customer: GET /api/customers/{id} (valida existencia do cliente)
+    activate Customer
+    Customer->>DB: Consulta cliente por ID
+    DB-->>Customer: Retorna cliente
+    Customer-->>Sales: 200 OK (Cliente validado)
+    deactivate Customer
+    Sales->>Catalog: POST /api/catalog/books/{id}/decrease-stock?quantity={q}
+    activate Catalog
+    Catalog->>DB: Atualiza e abate estoque restante
+    DB-->>Catalog: Livro atualizado com novo estoque
+    Catalog-->>Sales: 200 OK (Preco e dados do livro)
+    deactivate Catalog
+    Sales->>DB: Persiste registro de venda (com calculo total)
+    DB-->>Sales: Venda persistida
+    Sales-->>Gateway: 201 Created (Dados da venda confirmada)
+    deactivate Sales
+    Gateway-->>React: 201 Created
+    React-->>User: Exibe notificacao de confirmacao na interface
+```
+
+---
+
 ## Estrutura do Repositório
 
 ```text
@@ -20,10 +124,11 @@ BookStore/
 │   ├── catalog-service/      # Gestão de livros, estoque e GraphQL (porta 8081)
 │   ├── customer-service/     # Gestão de clientes e consulta ViaCEP (porta 8082)
 │   ├── sales-service/        # Orquestração e registro de vendas (porta 8083)
+│   ├── security-common/      # Módulo compartilhado de filtros JWT e segurança
 │   ├── Dockerfile.service    # Build multi-stage para imagens Docker
 │   └── pom.xml               # Parent POM (Java 21, Spring Boot 3.4, MapStruct, spring-dotenv)
 ├── frontend/                 # Interfaces de usuário
-│   ├── frontend-react/       # Aplicação React + Vite (porta 5173 local / 5175 docker)
+│   ├── frontend-react/       # Aplicação React + Vite (porta 5173 local / 5175 docker / Vercel)
 │   └── frontend-vue/         # Aplicação Vue.js + Vite (porta 5174)
 ├── gateway/                  # Configuração do Nginx reverse proxy
 │   └── nginx.conf
@@ -453,3 +558,13 @@ k6 run performance/bookstore-load-test.js
 # Apontando para os microsserviços em outra porta/host
 k6 run -e BASE_URL=http://localhost:8080 performance/bookstore-load-test.js
 ```
+
+---
+
+## Hospedagem em Produção (Vercel, Render e Neon)
+
+O sistema está preparado para deploy desacoplado em nuvem:
+
+- **Frontend (Vercel)**: SPA React hospedada na Vercel com roteamento e proxy reverso configurados via `frontend/frontend-react/vercel.json` (eliminando problemas de CORS no navegador);
+- **Backend (Render)**: Microsserviços `catalog-service`, `customer-service` e `sales-service` executados como Web Services Docker utilizando o `backend/Dockerfile.service`;
+- **Banco de Dados (Neon)**: PostgreSQL serverless com SSL ativo (`sslmode=require`), com criação automática de tabelas via Hibernate `ddl-auto: update`.
