@@ -36,7 +36,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         );
         problem.setTitle("Nao autorizado");
         problem.setType(URI.create("about:blank"));
-        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("timestamp", Instant.now().toString());
         problem.setProperty("path", request.getRequestURI());
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

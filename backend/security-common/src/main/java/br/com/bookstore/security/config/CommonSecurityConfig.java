@@ -22,6 +22,6 @@ public class CommonSecurityConfig {
     @Bean
     @ConditionalOnMissingBean
     public ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        return new ObjectMapper().findAndRegisterModules();
     }
 }
