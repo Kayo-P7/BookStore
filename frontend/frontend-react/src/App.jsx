@@ -1,9 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Header } from './components/Header';
-import { StatsSection } from './components/StatsSection';
+import { Sidebar } from './components/Sidebar';
+import { Navbar } from './components/Navbar';
+import { DashboardSection } from './components/DashboardSection';
 import { BookSection } from './components/BookSection';
 import { CustomerSection } from './components/CustomerSection';
 import { SaleSection } from './components/SaleSection';
+import { ServicesVueSection } from './components/ServicesVueSection';
+import { SettingsSection } from './components/SettingsSection';
+import { ConfirmDialog } from './components/ui/ConfirmDialog';
 import { bookService } from './services/bookService';
 import { customerService } from './services/customerService';
 import { saleService } from './services/saleService';
@@ -19,14 +23,22 @@ const emptyCustomer = {
     state: ''
 };
 
-// componente raiz da aplicacao react com carregamento pontual sem redundancias
+const validTabs = ['dashboard', 'books', 'customers', 'sales', 'services', 'settings'];
+
+// componente raiz com portal unificado navegacao por menus e modulo vue integrado
 export function App() {
+    const initialHash = window.location.hash ? window.location.hash.replace('#', '') : 'dashboard';
+    const [activeTab, setActiveTab] = useState(validTabs.includes(initialHash) ? initialHash : 'dashboard');
+    const [theme, setTheme] = useState(() => localStorage.getItem('bookstore-theme') || 'dark');
+
     const [books, setBooks] = useState([]);
     const [customers, setCustomers] = useState([]);
     const [sales, setSales] = useState([]);
 
     const [customerForm, setCustomerForm] = useState(emptyCustomer);
     const [editingCustomerId, setEditingCustomerId] = useState(null);
+    const [customerToDelete, setCustomerToDelete] = useState(null);
+    const [deletingCustomer, setDeletingCustomer] = useState(false);
     const [savingCustomer, setSavingCustomer] = useState(false);
     const [lookingUpCep, setLookingUpCep] = useState(false);
     const [savingSale, setSavingSale] = useState(false);
@@ -36,6 +48,37 @@ export function App() {
     const [loading, setLoading] = useState(true);
 
     const lastSearchedCep = useRef('');
+
+    // aplica o tema no elemento html e persiste no localstorage
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('bookstore-theme', theme);
+    }, [theme]);
+
+    // alterna entre tema escuro e claro
+    function toggleTheme() {
+        setTheme(current => (current === 'dark' ? 'light' : 'dark'));
+    }
+
+    // sincroniza a aba ativa com o historico de hash da url
+    function handleSelectTab(tab) {
+        if (!validTabs.includes(tab)) return;
+        setActiveTab(tab);
+        window.location.hash = tab;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // escuta alteracoes de hash no navegador
+    useEffect(() => {
+        function handleHashChange() {
+            const hash = window.location.hash.replace('#', '');
+            if (validTabs.includes(hash)) {
+                setActiveTab(hash);
+            }
+        }
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
 
     // busca apenas a lista de livros do catalogo
     async function loadBooks() {
@@ -194,24 +237,34 @@ export function App() {
         });
         setEditingCustomerId(customer.id);
         lastSearchedCep.current = (customer.cep || '').replace(/\D/g, '');
+        handleSelectTab('customers');
         document.getElementById('customer-form')?.scrollIntoView({
             behavior: 'smooth',
             block: 'center'
         });
     }
 
-    // exclui cliente e atualiza somente a lista de clientes
-    async function handleDeleteCustomer(customer) {
-        if (!window.confirm(`Deseja realmente excluir ${customer.name}?`)) return;
+    // abre modal customizado para confirmacao de exclusao sem usar confirm nativo
+    function handleRequestDeleteCustomer(customer) {
+        setCustomerToDelete(customer);
+    }
+
+    // confirma exclusao de cliente e atualiza a lista
+    async function handleConfirmDelete() {
+        if (!customerToDelete) return;
+        setDeletingCustomer(true);
         setMessage('');
         setError('');
         try {
-            await customerService.delete(customer.id);
+            await customerService.delete(customerToDelete.id);
             setMessage('Cliente excluído com sucesso.');
+            setCustomerToDelete(null);
             await loadCustomers();
         } catch (err) {
             setError('Não foi possível excluir o cliente.');
             console.error(err);
+        } finally {
+            setDeletingCustomer(false);
         }
     }
 
@@ -259,52 +312,120 @@ export function App() {
     const revenue = sales.reduce((sum, sale) => sum + Number(sale.total || 0), 0);
 
     return (
-        <main>
-            <Header />
+        <div className="app-layout">
+            <Sidebar activeTab={activeTab} onSelectTab={handleSelectTab} />
 
-            {error && <div className="alert error">{error}</div>}
-            {message && <div className="alert success">{message}</div>}
+            <div className="app-main-wrapper">
+                <Navbar
+                    activeTab={activeTab}
+                    onRefresh={loadInitialData}
+                    loading={loading}
+                    theme={theme}
+                    onToggleTheme={toggleTheme}
+                />
 
-            <StatsSection
-                booksCount={books.length}
-                customersCount={customers.length}
-                salesCount={sales.length}
-                revenue={revenue}
-            />
+                <main className="app-content-body">
+                    {error && (
+                        <div className="alert error">
+                            <span className="alert-icon">⚠️</span>
+                            <span>{error}</span>
+                            <button
+                                type="button"
+                                className="alert-close"
+                                onClick={() => setError('')}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
 
-            <SaleSection
-                customers={customers}
-                books={books}
-                sales={sales}
-                loading={loading}
-                savingSale={savingSale}
-                onRegisterSale={handleRegisterSale}
-                onRefresh={() => Promise.all([loadSales(), loadBooks()])}
-            />
+                    {message && (
+                        <div className="alert success">
+                            <span className="alert-icon">✓</span>
+                            <span>{message}</span>
+                            <button
+                                type="button"
+                                className="alert-close"
+                                onClick={() => setMessage('')}
+                            >
+                                ×
+                            </button>
+                        </div>
+                    )}
 
-            <CustomerSection
-                customerForm={customerForm}
-                editingCustomerId={editingCustomerId}
-                savingCustomer={savingCustomer}
-                lookingUpCep={lookingUpCep}
-                customers={customers}
-                loading={loading}
-                onUpdateField={updateCustomerField}
-                onLookupCep={handleLookupCep}
-                onSaveCustomer={handleSaveCustomer}
-                onResetForm={resetCustomerForm}
-                onEditCustomer={handleEditCustomer}
-                onDeleteCustomer={handleDeleteCustomer}
-                onRefresh={loadCustomers}
-            />
+                    {activeTab === 'dashboard' && (
+                        <DashboardSection
+                            books={books}
+                            customers={customers}
+                            sales={sales}
+                            revenue={revenue}
+                            onNavigate={handleSelectTab}
+                        />
+                    )}
 
-            <BookSection
-                books={books}
-                onAddBook={handleAddBook}
-                onRefresh={loadBooks}
-            />
+                    {activeTab === 'books' && (
+                        <BookSection
+                            books={books}
+                            onAddBook={handleAddBook}
+                            onRefresh={loadBooks}
+                            loading={loading}
+                        />
+                    )}
 
-            <footer>BookStore • Sistema acadêmico de gerenciamento de livraria</footer>
-        </main>
+                    {activeTab === 'customers' && (
+                        <CustomerSection
+                            customerForm={customerForm}
+                            editingCustomerId={editingCustomerId}
+                            savingCustomer={savingCustomer}
+                            lookingUpCep={lookingUpCep}
+                            customers={customers}
+                            loading={loading}
+                            onUpdateField={updateCustomerField}
+                            onLookupCep={handleLookupCep}
+                            onSaveCustomer={handleSaveCustomer}
+                            onResetForm={resetCustomerForm}
+                            onEditCustomer={handleEditCustomer}
+                            onDeleteCustomer={handleRequestDeleteCustomer}
+                            onRefresh={loadCustomers}
+                        />
+                    )}
+
+                    {activeTab === 'sales' && (
+                        <SaleSection
+                            customers={customers}
+                            books={books}
+                            sales={sales}
+                            loading={loading}
+                            savingSale={savingSale}
+                            onRegisterSale={handleRegisterSale}
+                            onRefresh={() => Promise.all([loadSales(), loadBooks()])}
+                        />
+                    )}
+
+                    {activeTab === 'services' && (
+                        <ServicesVueSection theme={theme} />
+                    )}
+
+                    {activeTab === 'settings' && (
+                        <SettingsSection theme={theme} onSetTheme={setTheme} />
+                    )}
+
+                    <ConfirmDialog
+                        isOpen={Boolean(customerToDelete)}
+                        title="Excluir Usuário / Cliente"
+                        description={`Deseja realmente excluir "${customerToDelete?.name}"? Esta ação removerá o cadastro permanentemente e é irreversível.`}
+                        confirmText="Confirmar Exclusão"
+                        cancelText="Cancelar"
+                        onConfirm={handleConfirmDelete}
+                        onCancel={() => setCustomerToDelete(null)}
+                        loading={deletingCustomer}
+                    />
+
+                    <footer className="app-footer">
+                        BookStore OS • Sistema Distribuído de Livraria & Biblioteca • React 18 & Vue 3
+                    </footer>
+                </main>
+            </div>
+        </div>
     );
 }

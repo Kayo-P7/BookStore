@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { formatCurrency, formatDate } from '../utils/formatters';
+import { CustomSelect } from './ui/CustomSelect';
+import { InlineError } from './ui/InlineError';
+import { SkeletonTable } from './ui/Skeleton';
+import { Pagination } from './ui/Pagination';
 
-// gerencia registro de novas vendas e listagem do historico
+// gerencia registro de novas vendas com customselect validacao inline e paginacao
 export function SaleSection({
     customers,
     books,
@@ -14,25 +18,56 @@ export function SaleSection({
     const [customerId, setCustomerId] = useState('');
     const [bookId, setBookId] = useState('');
     const [quantity, setQuantity] = useState('1');
+    const [errors, setErrors] = useState({});
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 5;
 
-    const selectedBook = books.find(book => String(book.id) === bookId);
+    const selectedBook = books.find(book => String(book.id) === String(bookId));
     const total = selectedBook
         ? Number(selectedBook.price) * Number(quantity || 0)
         : 0;
 
-    // envia os dados da nova venda
+    // valida os campos do formulario antes do envio
+    function validate() {
+        const newErrors = {};
+
+        if (!customerId) {
+            newErrors.customerId = 'Selecione um cliente para a venda.';
+        }
+
+        if (!bookId) {
+            newErrors.bookId = 'Selecione um livro do catálogo.';
+        }
+
+        const qtyNum = Number(quantity);
+        if (!quantity || isNaN(qtyNum) || qtyNum < 1) {
+            newErrors.quantity = 'Informe uma quantidade válida maior que zero.';
+        } else if (selectedBook && qtyNum > Number(selectedBook.stock)) {
+            newErrors.quantity = `Estoque insuficiente (disponível: ${selectedBook.stock}).`;
+        }
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    }
+
+    // envia os dados da nova venda apos validacao sem baloes nativos
     async function handleSubmit(e) {
         e.preventDefault();
+        if (!validate()) return;
+
         const success = await onRegisterSale({
             customerId: Number(customerId),
             bookId: Number(bookId),
             quantity: Number(quantity),
             selectedBook
         });
+
         if (success) {
             setCustomerId('');
             setBookId('');
             setQuantity('1');
+            setErrors({});
+            setCurrentPage(1);
         }
     }
 
@@ -46,139 +81,150 @@ export function SaleSection({
         return books.find(b => String(b.id) === String(id))?.title || `Livro #${id}`;
     }
 
+    const customerOptions = customers.map(c => ({
+        value: String(c.id),
+        label: `${c.name} (${c.email})`
+    }));
+
+    const bookOptions = books.map(b => ({
+        value: String(b.id),
+        label: `${b.title} — Estoque: ${b.stock} (${formatCurrency(b.price)})`,
+        disabled: Number(b.stock) < 1
+    }));
+
+    const paginatedSales = sales.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
     return (
-        <>
+        <div className="sales-view">
             <section className="panel">
-                <h2>Nova venda</h2>
-                <p className="description">
-                    Selecione o cliente, o livro e a quantidade desejada.
-                </p>
+                <div className="section-heading">
+                    <div>
+                        <h2>Nova Venda</h2>
+                        <p className="description">
+                            Selecione o cliente, o livro e a quantidade desejada para efetivar o pedido.
+                        </p>
+                    </div>
+                </div>
 
-                <form onSubmit={handleSubmit}>
-                    <label>
-                        Cliente
-                        <select
-                            required
+                <form noValidate onSubmit={handleSubmit} className="sale-form">
+                    <div className="form-field">
+                        <label>Cliente</label>
+                        <CustomSelect
                             value={customerId}
-                            onChange={e => setCustomerId(e.target.value)}
-                        >
-                            <option value="">Selecione um cliente</option>
-                            {customers.map(customer => (
-                                <option key={customer.id} value={customer.id}>
-                                    {customer.name}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                            onChange={val => {
+                                setCustomerId(val);
+                                if (errors.customerId) setErrors(errs => ({ ...errs, customerId: '' }));
+                            }}
+                            options={customerOptions}
+                            placeholder="Selecione um cliente cadastrado"
+                            error={Boolean(errors.customerId)}
+                        />
+                        <InlineError message={errors.customerId} />
+                    </div>
 
-                    <label>
-                        Livro
-                        <select
-                            required
+                    <div className="form-field">
+                        <label>Livro</label>
+                        <CustomSelect
                             value={bookId}
-                            onChange={e => setBookId(e.target.value)}
-                        >
-                            <option value="">Selecione um livro</option>
-                            {books.map(book => (
-                                <option
-                                    key={book.id}
-                                    value={book.id}
-                                    disabled={Number(book.stock) < 1}
-                                >
-                                    {book.title} — Estoque: {book.stock}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
+                            onChange={val => {
+                                setBookId(val);
+                                if (errors.bookId) setErrors(errs => ({ ...errs, bookId: '' }));
+                            }}
+                            options={bookOptions}
+                            placeholder="Selecione um livro com estoque"
+                            error={Boolean(errors.bookId)}
+                        />
+                        <InlineError message={errors.bookId} />
+                    </div>
 
-                    <label>
-                        Quantidade
+                    <div className="form-field">
+                        <label>Quantidade</label>
                         <input
-                            required
                             type="number"
                             min="1"
                             max={selectedBook?.stock ?? undefined}
+                            placeholder="1"
                             value={quantity}
-                            onChange={e => setQuantity(e.target.value)}
+                            className={errors.quantity ? 'input-error' : ''}
+                            onChange={e => {
+                                setQuantity(e.target.value);
+                                if (errors.quantity) setErrors(errs => ({ ...errs, quantity: '' }));
+                            }}
                         />
-                    </label>
-
-                    <div className="sale-total">
-                        <small>Valor total</small>
-                        <strong>{formatCurrency(total)}</strong>
-                        {selectedBook && (
-                            <span>{formatCurrency(selectedBook.price)} por unidade</span>
-                        )}
+                        <InlineError message={errors.quantity} />
                     </div>
 
-                    <button
-                        type="submit"
-                        disabled={
-                            savingSale ||
-                            loading ||
-                            !customers.length ||
-                            !books.length
-                        }
-                    >
-                        {savingSale ? 'Registrando...' : 'Registrar venda'}
-                    </button>
+                    <div className="sale-total">
+                        <div>
+                            <span>Total Previsto:</span>
+                            <strong>{formatCurrency(total)}</strong>
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={savingSale}
+                            className="primary primary-action-pill"
+                        >
+                            {savingSale ? 'Registrando...' : 'Confirmar Venda'}
+                        </button>
+                    </div>
                 </form>
-
-                {!loading && !customers.length && (
-                    <p className="description">
-                        Cadastre clientes antes de registrar uma venda.
-                    </p>
-                )}
             </section>
 
             <section className="panel">
                 <div className="section-heading">
                     <div>
-                        <h2>Histórico de vendas</h2>
+                        <h2>Histórico de Vendas</h2>
                         <p className="description">
-                            Vendas registradas no sistema.
+                            Total de {sales.length} transações registradas no sistema
                         </p>
                     </div>
-                    <button className="secondary" onClick={onRefresh}>
+                    <button className="secondary" onClick={onRefresh} title="Atualizar dados">
                         Atualizar
                     </button>
                 </div>
 
                 {loading ? (
-                    <p>Carregando vendas...</p>
+                    <SkeletonTable rows={4} cols={5} />
                 ) : sales.length === 0 ? (
-                    <p className="empty">Nenhuma venda registrada.</p>
+                    <p className="empty">Nenhuma venda registrada ainda.</p>
                 ) : (
-                    <div className="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Cliente</th>
-                                    <th>Livro</th>
-                                    <th>Quantidade</th>
-                                    <th>Preço unitário</th>
-                                    <th>Total</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {[...sales].reverse().map(sale => (
-                                    <tr key={sale.id}>
-                                        <td>#{sale.id}</td>
-                                        <td>{customerName(sale.customerId)}</td>
-                                        <td>{bookTitle(sale.bookId)}</td>
-                                        <td>{sale.quantity}</td>
-                                        <td>{formatCurrency(sale.unitPrice)}</td>
-                                        <td><strong>{formatCurrency(sale.total)}</strong></td>
-                                        <td>{formatDate(sale.createdAt)}</td>
+                    <>
+                        <div className="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Data / Hora</th>
+                                        <th>Cliente</th>
+                                        <th>Livro</th>
+                                        <th>Quantidade</th>
+                                        <th>Total</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {paginatedSales.map(sale => (
+                                        <tr key={sale.id}>
+                                            <td><span className="badge-tech">#{sale.id}</span></td>
+                                            <td>{formatDate(sale.createdAt)}</td>
+                                            <td><strong>{customerName(sale.customerId)}</strong></td>
+                                            <td>{bookTitle(sale.bookId)}</td>
+                                            <td>{sale.quantity}x</td>
+                                            <td><strong className="amount-val">{formatCurrency(sale.total)}</strong></td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <Pagination
+                            currentPage={currentPage}
+                            totalItems={sales.length}
+                            pageSize={pageSize}
+                            onPageChange={setCurrentPage}
+                        />
+                    </>
                 )}
             </section>
-        </>
+        </div>
     );
 }
