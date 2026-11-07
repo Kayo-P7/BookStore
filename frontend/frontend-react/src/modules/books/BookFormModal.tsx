@@ -293,66 +293,68 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                         </div>
                     )}
 
-                    {/* lista de resultados retornados pela busca */}
+                    {/* lista de resultados retornados pela busca com cabecalho fixo isolado sem sobreposicao */}
                     {searchResults.length > 0 && (
-                        <div className="max-h-52 overflow-y-auto rounded-lg border border-[#e5e5e5] bg-white divide-y divide-[#f0f0f0] shadow-sm animate-message-liquid">
-                            <div className="px-3 py-1.5 bg-[#fafafa] text-[11px] font-medium text-[#737373] sticky top-0 border-b border-[#e5e5e5] flex justify-between items-center">
+                        <div className="rounded-lg border border-[#e5e5e5] bg-white shadow-sm overflow-hidden animate-message-liquid">
+                            <div className="px-3.5 py-2 bg-[#fafafa] text-[11px] font-medium text-[#737373] border-b border-[#e5e5e5] flex justify-between items-center select-none">
                                 <span>{searchResults.length} {searchResults.length === 1 ? 'resultado encontrado' : 'resultados encontrados'}</span>
-                                <span className="text-[10px]">Clique para autopreencher</span>
+                                <span className="text-[10px] text-[#737373]">Clique para autopreencher</span>
                             </div>
-                            {searchResults.map(item => (
-                                <div
-                                    key={item.id}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => handleSelectBook(item)}
-                                    onKeyDown={e => {
-                                        if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            handleSelectBook(item);
-                                        }
-                                    }}
-                                    className="p-2.5 flex items-start gap-2.5 hover:bg-emerald-50/50 cursor-pointer transition-colors group text-left"
-                                >
-                                    {item.thumbnail ? (
-                                        <img
-                                            src={item.thumbnail}
-                                            alt={item.title}
-                                            className="w-8 h-11 object-cover rounded shadow-2xs shrink-0 mt-0.5"
-                                        />
-                                    ) : (
-                                        <div className="w-8 h-11 rounded bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center shrink-0 mt-0.5">
-                                            <BookOpen className="w-4 h-4 text-[#737373]" />
+                            <div className="max-h-52 overflow-y-auto divide-y divide-[#f0f0f0]">
+                                {searchResults.map(item => (
+                                    <div
+                                        key={item.id}
+                                        role="button"
+                                        tabIndex={0}
+                                        onClick={() => handleSelectBook(item)}
+                                        onKeyDown={e => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                handleSelectBook(item);
+                                            }
+                                        }}
+                                        className="p-2.5 flex items-start gap-2.5 hover:bg-emerald-50/50 cursor-pointer transition-colors group text-left"
+                                    >
+                                        {item.thumbnail ? (
+                                            <img
+                                                src={item.thumbnail}
+                                                alt={item.title}
+                                                className="w-8 h-11 object-cover rounded shadow-2xs shrink-0 mt-0.5"
+                                            />
+                                        ) : (
+                                            <div className="w-8 h-11 rounded bg-[#f5f5f5] border border-[#e5e5e5] flex items-center justify-center shrink-0 mt-0.5">
+                                                <BookOpen className="w-4 h-4 text-[#737373]" />
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-xs font-semibold text-[#171717] group-hover:text-[#059669] transition-colors line-clamp-1">
+                                                {item.title}
+                                            </p>
+                                            <p className="text-[11px] text-[#737373] line-clamp-1">
+                                                {item.authors || 'Autor não informado'}
+                                            </p>
+                                            <div className="flex items-center gap-2 mt-1 text-[10px] text-[#737373]">
+                                                {item.publishedYear && <span>{item.publishedYear}</span>}
+                                                {item.publisher && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="truncate max-w-[120px]">{item.publisher}</span>
+                                                    </>
+                                                )}
+                                                {item.isbn && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="font-mono">ISBN: {item.isbn}</span>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-semibold text-[#171717] group-hover:text-[#059669] transition-colors line-clamp-1">
-                                            {item.title}
-                                        </p>
-                                        <p className="text-[11px] text-[#737373] line-clamp-1">
-                                            {item.authors || 'Autor não informado'}
-                                        </p>
-                                        <div className="flex items-center gap-2 mt-1 text-[10px] text-[#737373]">
-                                            {item.publishedYear && <span>{item.publishedYear}</span>}
-                                            {item.publisher && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span className="truncate max-w-[120px]">{item.publisher}</span>
-                                                </>
-                                            )}
-                                            {item.isbn && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span className="font-mono">ISBN: {item.isbn}</span>
-                                                </>
-                                            )}
-                                        </div>
+                                        <span className="text-[11px] text-[#059669] font-medium self-center px-2 py-1 rounded bg-emerald-50 border border-emerald-200/60 opacity-90 group-hover:opacity-100 shrink-0">
+                                            Selecionar
+                                        </span>
                                     </div>
-                                    <span className="text-[11px] text-[#059669] font-medium self-center px-2 py-1 rounded bg-emerald-50 border border-emerald-200/60 opacity-90 group-hover:opacity-100 shrink-0">
-                                        Selecionar
-                                    </span>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     )}
 
