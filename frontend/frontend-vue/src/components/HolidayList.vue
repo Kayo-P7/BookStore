@@ -4,7 +4,7 @@
             <h2>Feriados nacionais</h2>
             <button
                 class="light"
-                @click="loadHolidays"
+                @click="loadHolidays(true)"
                 :disabled="loading"
             >
                 {{ loading ? 'Atualizando...' : 'Atualizar' }}
@@ -35,7 +35,7 @@
 import { ref, onMounted } from 'vue';
 import { holidayService } from '../services/holidayService';
 
-// componente para consulta e listagem de feriados
+// componente para consulta e listagem de feriados sem chamadas duplicadas
 export default {
     name: 'HolidayList',
     setup() {
@@ -48,8 +48,11 @@ export default {
             return new Date(dateString + 'T12:00:00').toLocaleDateString('pt-BR');
         }
 
-        // consulta lista de feriados via servico
-        async function loadHolidays() {
+        // consulta lista de feriados evitando chamadas concorrentes ou repetidas
+        async function loadHolidays(force = false) {
+            if (loading.value) return;
+            if (!force && holidays.value.length > 0) return;
+
             error.value = '';
             loading.value = true;
             try {

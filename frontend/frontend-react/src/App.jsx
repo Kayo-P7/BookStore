@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Header } from './components/Header';
 import { StatsSection } from './components/StatsSection';
 import { BookSection } from './components/BookSection';
@@ -19,7 +19,7 @@ const emptyCustomer = {
     state: ''
 };
 
-// componente raiz da aplicacao react para gerenciamento da livraria
+// componente raiz da aplicacao react com carregamento pontual sem redundancias
 export function App() {
     const [books, setBooks] = useState([]);
     const [customers, setCustomers] = useState([]);
@@ -35,8 +35,40 @@ export function App() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(true);
 
-    // carrega dados consolidados de livros clientes e vendas
-    async function loadData() {
+    const lastSearchedCep = useRef('');
+
+    // busca apenas a lista de livros do catalogo
+    async function loadBooks() {
+        try {
+            const data = await bookService.findAll();
+            setBooks(data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // busca apenas a lista de clientes cadastrados
+    async function loadCustomers() {
+        try {
+            const data = await customerService.findAll();
+            setCustomers(data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // busca apenas o historico de vendas realizadas
+    async function loadSales() {
+        try {
+            const data = await saleService.findAll();
+            setSales(data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // carrega dados iniciais de todos os servicos no primeiro carregamento
+    async function loadInitialData() {
         setLoading(true);
         setError('');
 
@@ -59,10 +91,10 @@ export function App() {
     }
 
     useEffect(() => {
-        loadData();
+        loadInitialData();
     }, []);
 
-    // adiciona um novo livro via servico de catalogo
+    // adiciona livro e atualiza somente a lista de livros
     async function handleAddBook(bookData) {
         setMessage('');
         setError('');
@@ -70,7 +102,7 @@ export function App() {
         try {
             await bookService.create(bookData);
             setMessage('Livro cadastrado com sucesso.');
-            await loadData();
+            await loadBooks();
         } catch (err) {
             setError('Erro ao cadastrar livro.');
             console.error(err);
@@ -82,16 +114,17 @@ export function App() {
         setCustomerForm(current => ({ ...current, [field]: value }));
     }
 
-    // reseta o formulario de cliente
+    // reseta o formulario de cliente e limpa o cache de cep consultado
     function resetCustomerForm() {
         setCustomerForm(emptyCustomer);
         setEditingCustomerId(null);
+        lastSearchedCep.current = '';
     }
 
-    // consulta endereco via viacep
+    // consulta endereco via viacep evitando chamadas repetidas para o mesmo cep
     async function handleLookupCep() {
         const cep = customerForm.cep.replace(/\D/g, '');
-        if (cep.length !== 8) return;
+        if (cep.length !== 8 || lastSearchedCep.current === cep) return;
 
         setLookingUpCep(true);
         try {
@@ -100,6 +133,7 @@ export function App() {
                 setError('CEP não encontrado.');
                 return;
             }
+            lastSearchedCep.current = cep;
             setCustomerForm(current => ({
                 ...current,
                 cep,
@@ -116,7 +150,7 @@ export function App() {
         }
     }
 
-    // salva ou atualiza cliente via servico de clientes
+    // salva ou edita cliente e atualiza somente a lista de clientes
     async function handleSaveCustomer(e) {
         e.preventDefault();
         setMessage('');
@@ -137,7 +171,7 @@ export function App() {
                 setMessage('Cliente cadastrado com sucesso.');
             }
             resetCustomerForm();
-            await loadData();
+            await loadCustomers();
         } catch (err) {
             setError('Não foi possível salvar o cliente. Confira os dados informados.');
             console.error(err);
@@ -159,13 +193,14 @@ export function App() {
             state: customer.state || ''
         });
         setEditingCustomerId(customer.id);
+        lastSearchedCep.current = (customer.cep || '').replace(/\D/g, '');
         document.getElementById('customer-form')?.scrollIntoView({
             behavior: 'smooth',
             block: 'center'
         });
     }
 
-    // exclui cliente existente
+    // exclui cliente e atualiza somente a lista de clientes
     async function handleDeleteCustomer(customer) {
         if (!window.confirm(`Deseja realmente excluir ${customer.name}?`)) return;
         setMessage('');
@@ -173,14 +208,14 @@ export function App() {
         try {
             await customerService.delete(customer.id);
             setMessage('Cliente excluído com sucesso.');
-            await loadData();
+            await loadCustomers();
         } catch (err) {
             setError('Não foi possível excluir o cliente.');
             console.error(err);
         }
     }
 
-    // registra venda atraves do servico de vendas
+    // registra venda e atualiza apenas vendas e estoque do catalogo
     async function handleRegisterSale({ customerId, bookId, quantity, selectedBook }) {
         setMessage('');
         setError('');
@@ -210,7 +245,7 @@ export function App() {
             });
 
             setMessage('Venda registrada com sucesso.');
-            await loadData();
+            await Promise.all([loadSales(), loadBooks()]);
             return true;
         } catch (err) {
             setError('Não foi possível registrar a venda. Verifique o estoque e os dados selecionados.');
@@ -244,7 +279,7 @@ export function App() {
                 loading={loading}
                 savingSale={savingSale}
                 onRegisterSale={handleRegisterSale}
-                onRefresh={loadData}
+                onRefresh={() => Promise.all([loadSales(), loadBooks()])}
             />
 
             <CustomerSection
@@ -260,13 +295,13 @@ export function App() {
                 onResetForm={resetCustomerForm}
                 onEditCustomer={handleEditCustomer}
                 onDeleteCustomer={handleDeleteCustomer}
-                onRefresh={loadData}
+                onRefresh={loadCustomers}
             />
 
             <BookSection
                 books={books}
                 onAddBook={handleAddBook}
-                onRefresh={loadData}
+                onRefresh={loadBooks}
             />
 
             <footer>BookStore • Sistema acadêmico de gerenciamento de livraria</footer>
