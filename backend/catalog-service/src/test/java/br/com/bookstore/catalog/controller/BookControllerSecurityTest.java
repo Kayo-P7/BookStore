@@ -30,8 +30,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = BookController.class)
@@ -81,9 +80,9 @@ class BookControllerSecurityTest {
     }
 
     @Test
-    @DisplayName("deve proibir criacao de livro por usuario comum retornando 403")
-    @WithMockUser(roles = SecurityRoles.CUSTOMER)
-    void shouldDenyBookCreationForCustomerRole() throws Exception {
+    @DisplayName("deve proibir criacao de livro por perfil VENDEDOR retornando 403")
+    @WithMockUser(roles = SecurityRoles.SELLER)
+    void shouldDenyBookCreationForSellerRole() throws Exception {
         BookRequest request = new BookRequest(
                 "Clean Code", "Robert C. Martin", "9780132350884", "Prentice Hall",
                 "Handbook of agile software", new BigDecimal("120.00"), 10
@@ -113,13 +112,21 @@ class BookControllerSecurityTest {
         mockMvc.perform(post("/api/catalog/books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
-    @DisplayName("deve permitir reducao de estoque para usuario autenticado")
-    @WithMockUser(roles = SecurityRoles.CUSTOMER)
-    void shouldAllowDecreaseStockForAuthenticatedUser() throws Exception {
+    @DisplayName("deve permitir exclusao de livro quando usuario possuir papel ADMIN")
+    @WithMockUser(roles = SecurityRoles.ADMIN)
+    void shouldAllowBookDeletionForAdminRole() throws Exception {
+        mockMvc.perform(delete("/api/catalog/books/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @DisplayName("deve permitir reducao de estoque para perfil VENDEDOR")
+    @WithMockUser(roles = SecurityRoles.SELLER)
+    void shouldAllowDecreaseStockForSeller() throws Exception {
         BookResponse response = new BookResponse(
                 1L, "Clean Code", "Robert C. Martin", "9780132350884", "Prentice Hall",
                 "Handbook of agile software", new BigDecimal("120.00"), 9

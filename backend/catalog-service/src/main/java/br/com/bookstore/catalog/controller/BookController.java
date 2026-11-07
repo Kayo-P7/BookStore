@@ -4,6 +4,7 @@ import br.com.bookstore.catalog.dto.BookRequest;
 import br.com.bookstore.catalog.dto.BookResponse;
 import br.com.bookstore.catalog.service.BookService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLEncoder;
@@ -41,6 +42,7 @@ public class BookController {
 
     // cria novo registro de livro
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public BookResponse create(@Valid @RequestBody BookRequest request) {
         return service.save(request);
     }
@@ -53,6 +55,7 @@ public class BookController {
 
     // exclui registro de livro por id
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
