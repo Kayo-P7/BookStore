@@ -10,6 +10,7 @@ import { ServicesPage } from '../modules/services/ServicesPage';
 import { SettingsPage } from '../modules/settings/SettingsPage';
 import { LoginPage } from '../modules/auth/LoginPage';
 import { ForgotPasswordPage } from '../modules/auth/ForgotPasswordPage';
+import { NotFoundPage } from '../modules/not-found/NotFoundPage';
 
 export function AppRoutes() {
     return (
@@ -32,8 +33,9 @@ export function AppRoutes() {
                 <Route path="settings" element={<SettingsPage />} />
             </Route>
 
-            {/* redirecionamento de rotas desconhecidas */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            {/* rota explicita de 404 e captura de qualquer rota nao mapeada */}
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*" element={<NotFoundPage />} />
         </Routes>
     );
 }
