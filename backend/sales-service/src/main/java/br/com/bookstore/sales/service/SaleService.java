@@ -25,8 +25,8 @@ public class SaleService {
 
     public SaleService(SaleRepository repo,
                        SaleMapper mapper,
-                       @Value("${services.catalog-url:http://localhost:8081}") String catalogUrl,
-                       @Value("${services.customer-url:http://localhost:8082}") String customerUrl) {
+                       @Value("${services.catalog-url}") String catalogUrl,
+                       @Value("${services.customer-url}") String customerUrl) {
         this.repo = repo;
         this.mapper = mapper;
         this.catalog = RestClient.create(catalogUrl);
