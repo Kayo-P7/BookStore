@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { cn } from './button';
 
@@ -9,6 +10,7 @@ export interface ModalProps {
     description?: string;
     children: React.ReactNode;
     maxWidth?: string;
+    centerTitle?: boolean;
 }
 
 export function Modal({
@@ -17,8 +19,15 @@ export function Modal({
     title,
     description,
     children,
-    maxWidth = 'max-w-lg'
+    maxWidth = 'max-w-lg',
+    centerTitle = false
 }: ModalProps) {
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     React.useEffect(() => {
         function handleKeyDown(e: KeyboardEvent) {
             if (e.key === 'Escape' && isOpen) {
@@ -35,39 +44,52 @@ export function Modal({
         };
     }, [isOpen, onClose]);
 
-    if (!isOpen) return null;
+    if (!isOpen || !mounted) return null;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 animate-dialog-fade">
-            {/* backdrop com desfoque e fade suave apple easing (260ms) */}
+    const modalContent = (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 animate-dialog-fade">
+            {/* backdrop dub refero: overlay escurecido em 100% da viewport */}
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity cursor-pointer"
+                className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity cursor-pointer"
                 onClick={onClose}
             />
 
-            {/* container com glassmorphism e pop suave apple easing (280ms) */}
+            {/* container modal dub refero: branco solido, borda hairline #e5e5e5, centralizado na tela */}
             <div
                 className={cn(
-                    'relative w-full z-10 glass-card rounded-2xl p-6 sm:p-7 shadow-2xl border border-white/20 dark:border-white/10',
-                    'animate-dialog-pop max-h-[90vh] overflow-y-auto',
+                    'relative w-full z-10 bg-white border border-[#e5e5e5] rounded-2xl p-6 sm:p-7',
+                    'shadow-2xl shadow-black/10 animate-dialog-pop max-h-[90vh] overflow-y-auto',
                     maxWidth
                 )}
             >
-                <div className="flex items-start justify-between pb-4 border-b border-border/50">
-                    <div>
-                        <h3 className="text-lg font-semibold tracking-tight text-foreground">{title}</h3>
+                <div
+                    className={cn(
+                        'pb-4 border-b border-[#f0f0f0]',
+                        centerTitle ? 'relative text-center px-8' : 'flex items-start justify-between'
+                    )}
+                >
+                    <div className={cn('space-y-1', centerTitle && 'mx-auto text-center')}>
+                        <h3 className={cn('text-lg font-semibold tracking-tight text-[#171717]', centerTitle && 'text-center')}>
+                            {title}
+                        </h3>
                         {description && (
-                            <p className="text-sm text-muted-foreground mt-1">{description}</p>
+                            <p className={cn('text-xs text-[#737373] leading-relaxed', centerTitle && 'text-center')}>
+                                {description}
+                            </p>
                         )}
                     </div>
 
+                    {/* botao fechar 'x' sempre vermelho conforme diretriz de ui */}
                     <button
                         type="button"
                         onClick={onClose}
-                        className="text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 dark:hover:text-red-300 p-1.5 rounded-lg transition-all duration-200 hover:rotate-90 active:scale-90 cursor-pointer"
+                        className={cn(
+                            'text-red-500 hover:text-red-700 p-1.5 rounded-lg bg-red-50/70 hover:bg-red-100 border border-red-200/60 transition-all duration-150 hover:rotate-90 active:scale-90 cursor-pointer',
+                            centerTitle ? 'absolute right-0 top-0' : '-mr-1 -mt-1'
+                        )}
                         title="Fechar (Esc)"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-4.5 h-4.5" />
                     </button>
                 </div>
 
@@ -75,4 +97,6 @@ export function Modal({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }

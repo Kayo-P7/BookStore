@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { Modal } from '../../components/ui/modal';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -33,6 +33,7 @@ interface BookFormModalProps {
 export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps) {
     const [submitting, setSubmitting] = React.useState(false);
     const [formError, setFormError] = React.useState<string | null>(null);
+    const isSubmittingRef = React.useRef(false);
 
     const {
         register,
@@ -58,12 +59,17 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
 
     React.useEffect(() => {
         setFormError(null);
+        isSubmittingRef.current = false;
         if (!isOpen) {
             reset();
         }
     }, [isOpen, reset]);
 
     async function handleFormSubmit(data: BookFormData) {
+        // bloqueio imediato contra duplo clique
+        if (isSubmittingRef.current || submitting) return;
+
+        isSubmittingRef.current = true;
         setSubmitting(true);
         setFormError(null);
         try {
@@ -83,6 +89,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
             const message = err instanceof Error ? err.message : 'Falha ao salvar livro no catálogo.';
             setFormError(message);
         } finally {
+            isSubmittingRef.current = false;
             setSubmitting(false);
         }
     }
@@ -98,14 +105,14 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
             <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                 {/* alerta de erro interno do modal */}
                 {formError && (
-                    <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-xs flex items-center gap-2 animate-in fade-in duration-150">
+                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-in fade-in duration-150">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{formError}</span>
                     </div>
                 )}
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">Título do Livro</label>
+                    <label className="text-xs font-medium text-foreground/80">Título do Livro</label>
                     <Input
                         placeholder="Ex: O Pequeno Príncipe"
                         error={Boolean(errors.title)}
@@ -124,7 +131,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">Autor(es)</label>
+                    <label className="text-xs font-medium text-foreground/80">Autor(es)</label>
                     <Input
                         placeholder="Ex: Antoine de Saint-Exupéry"
                         {...register('authors')}
@@ -133,7 +140,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
 
                 <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">Preço Unitário</label>
+                        <label className="text-xs font-medium text-foreground/80">Preço Unitário</label>
                         <Input
                             placeholder="R$ 0,00"
                             inputMode="numeric"
@@ -155,7 +162,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">Estoque Inicial</label>
+                        <label className="text-xs font-medium text-foreground/80">Estoque Inicial</label>
                         <Input
                             placeholder="0"
                             inputMode="numeric"
@@ -178,7 +185,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                     </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#f0f0f0]">
                     <Button
                         type="button"
                         variant="cancel"
@@ -193,8 +200,16 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                         size="default"
                         hoverLift
                         disabled={submitting}
+                        className="gap-2"
                     >
-                        {submitting ? 'Cadastrando...' : 'Cadastrar Livro'}
+                        {submitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Cadastrando...</span>
+                            </>
+                        ) : (
+                            'Cadastrar Livro'
+                        )}
                     </Button>
                 </div>
             </form>

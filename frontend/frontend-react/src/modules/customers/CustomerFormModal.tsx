@@ -48,6 +48,7 @@ export function CustomerFormModal({
     const [submitting, setSubmitting] = React.useState(false);
     const [lookingUpCep, setLookingUpCep] = React.useState(false);
     const [formError, setFormError] = React.useState<string | null>(null);
+    const isSubmittingRef = React.useRef(false);
 
     const {
         register,
@@ -77,6 +78,7 @@ export function CustomerFormModal({
 
     React.useEffect(() => {
         setFormError(null);
+        isSubmittingRef.current = false;
         if (editingCustomer) {
             reset({
                 name: editingCustomer.name || '',
@@ -116,16 +118,20 @@ export function CustomerFormModal({
                 setValue('city', address.localidade || address.city || '', { shouldValidate: true });
                 setValue('state', (address.uf || address.state || '').toUpperCase(), { shouldValidate: true });
             } else if (address?.erro) {
-                setFormError('CEP não encontrado na base do ViaCEP.');
+                setFormError('CEP não localizado. Verifique os dígitos informados.');
             }
         } catch {
-            setFormError('Falha ao consultar CEP nos servidores do ViaCEP.');
+            setFormError('Não foi possível consultar o endereço no momento. Preencha manualmente.');
         } finally {
             setLookingUpCep(false);
         }
     }
 
     async function handleFormSubmit(data: CustomerFormData) {
+        // bloqueio imediato contra duplo clique
+        if (isSubmittingRef.current || submitting) return;
+
+        isSubmittingRef.current = true;
         setSubmitting(true);
         setFormError(null);
         try {
@@ -150,6 +156,7 @@ export function CustomerFormModal({
             const message = err instanceof Error ? err.message : 'Erro ao processar dados do cliente.';
             setFormError(message);
         } finally {
+            isSubmittingRef.current = false;
             setSubmitting(false);
         }
     }
@@ -169,14 +176,14 @@ export function CustomerFormModal({
             <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                 {/* alerta de erro de api dentro do proprio modal */}
                 {formError && (
-                    <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-xs flex items-center gap-2 animate-in fade-in duration-150">
+                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-in fade-in duration-150">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{formError}</span>
                     </div>
                 )}
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">Nome Completo</label>
+                    <label className="text-xs font-medium text-foreground/80">Nome Completo</label>
                     <Input
                         placeholder="Ex: Carlos Silva"
                         error={Boolean(errors.name)}
@@ -196,7 +203,7 @@ export function CustomerFormModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">E-mail</label>
+                        <label className="text-xs font-medium text-foreground/80">E-mail</label>
                         <Input
                             type="email"
                             placeholder="carlos@email.com"
@@ -216,7 +223,7 @@ export function CustomerFormModal({
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">Telefone</label>
+                        <label className="text-xs font-medium text-foreground/80">Telefone</label>
                         <Input
                             placeholder="(11) 98765-4321"
                             maxLength={15}
@@ -233,7 +240,7 @@ export function CustomerFormModal({
 
                 {/* cep com mascara automatica e busca via viacep integrada ao completar 8 digitos */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                    <label className="text-xs font-medium text-foreground/80 flex items-center justify-between">
                         <span>CEP</span>
                         <span className="text-[10px] text-muted-foreground font-normal">
                             Preenchimento automático do hífen (-)
@@ -265,7 +272,7 @@ export function CustomerFormModal({
                             onClick={() => handleLookupCep()}
                             disabled={lookingUpCep}
                             className="shrink-0 gap-1.5 text-xs"
-                            title="Consultar endereço via ViaCEP"
+                            title="Consultar endereço pelo CEP"
                         >
                             {lookingUpCep ? (
                                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -285,7 +292,7 @@ export function CustomerFormModal({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">Logradouro / Rua</label>
+                        <label className="text-xs font-medium text-foreground/80">Logradouro / Rua</label>
                         <Input
                             placeholder="Rua ou Avenida"
                             {...register('street')}
@@ -293,7 +300,7 @@ export function CustomerFormModal({
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">Bairro</label>
+                        <label className="text-xs font-medium text-foreground/80">Bairro</label>
                         <Input
                             placeholder="Bairro"
                             {...register('neighborhood')}
@@ -303,7 +310,7 @@ export function CustomerFormModal({
 
                 <div className="grid grid-cols-3 gap-3">
                     <div className="col-span-2 space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">Cidade</label>
+                        <label className="text-xs font-medium text-foreground/80">Cidade</label>
                         <Input
                             placeholder="Cidade"
                             {...register('city')}
@@ -311,7 +318,7 @@ export function CustomerFormModal({
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-foreground">UF</label>
+                        <label className="text-xs font-medium text-foreground/80">UF</label>
                         <Input
                             placeholder="SP"
                             maxLength={2}
@@ -321,7 +328,7 @@ export function CustomerFormModal({
                     </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#f0f0f0]">
                     <Button
                         type="button"
                         variant="cancel"
@@ -336,12 +343,18 @@ export function CustomerFormModal({
                         size="default"
                         hoverLift
                         disabled={submitting || lookingUpCep}
+                        className="gap-2"
                     >
-                        {submitting
-                            ? 'Salvando...'
-                            : editingCustomer
-                            ? 'Salvar Alterações'
-                            : 'Cadastrar Cliente'}
+                        {submitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Salvando...</span>
+                            </>
+                        ) : editingCustomer ? (
+                            'Salvar Alterações'
+                        ) : (
+                            'Cadastrar Usuário'
+                        )}
                     </Button>
                 </div>
             </form>

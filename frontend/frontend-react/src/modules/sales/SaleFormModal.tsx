@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { Modal } from '../../components/ui/modal';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -39,6 +39,7 @@ export function SaleFormModal({
 }: SaleFormModalProps) {
     const [submitting, setSubmitting] = React.useState(false);
     const [formError, setFormError] = React.useState<string | null>(null);
+    const isSubmittingRef = React.useRef(false);
 
     const {
         handleSubmit,
@@ -66,6 +67,7 @@ export function SaleFormModal({
 
     React.useEffect(() => {
         setFormError(null);
+        isSubmittingRef.current = false;
         if (!isOpen) {
             reset();
         }
@@ -73,21 +75,27 @@ export function SaleFormModal({
 
     const customerOptions = customers.map(c => ({
         value: String(c.id),
-        label: `${c.name} (${c.email})`
+        label: `${c.name} (${c.email})`,
+        description: c.phone ? `Telefone: ${c.phone}` : undefined
     }));
 
     const bookOptions = books.map(b => ({
         value: String(b.id),
         label: `${b.title} — ${formatCurrency(b.price)} (${b.stock} em estoque)`,
+        description: b.authors ? `Autor(es): ${b.authors}` : undefined,
         disabled: Number(b.stock) <= 0
     }));
 
     async function handleFormSubmit(data: SaleFormData) {
+        // bloqueio imediato contra duplo clique
+        if (isSubmittingRef.current || submitting) return;
+
         if (selectedBook && Number(data.quantity) > Number(selectedBook.stock)) {
             setFormError(`Quantidade solicitada (${data.quantity}) excede o estoque disponível (${selectedBook.stock}).`);
             return;
         }
 
+        isSubmittingRef.current = true;
         setSubmitting(true);
         setFormError(null);
         try {
@@ -105,6 +113,7 @@ export function SaleFormModal({
             const message = err instanceof Error ? err.message : 'Falha ao registrar venda no serviço de pedidos.';
             setFormError(message);
         } finally {
+            isSubmittingRef.current = false;
             setSubmitting(false);
         }
     }
@@ -120,14 +129,14 @@ export function SaleFormModal({
             <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                 {/* alerta de erro interno do modal */}
                 {formError && (
-                    <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-xs flex items-center gap-2 animate-in fade-in duration-150">
+                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-in fade-in duration-150">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{formError}</span>
                     </div>
                 )}
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">Cliente</label>
+                    <label className="text-xs font-medium text-foreground/80">Cliente</label>
                     <Controller
                         name="customerId"
                         control={control}
@@ -141,6 +150,7 @@ export function SaleFormModal({
                                 }}
                                 options={customerOptions}
                                 placeholder="Selecione um cliente cadastrado"
+                                searchPlaceholder="Digite o nome, e-mail ou telefone..."
                                 error={Boolean(errors.customerId)}
                             />
                         )}
@@ -154,7 +164,7 @@ export function SaleFormModal({
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">Livro do Catálogo</label>
+                    <label className="text-xs font-medium text-foreground/80">Livro do Catálogo</label>
                     <Controller
                         name="bookId"
                         control={control}
@@ -168,6 +178,7 @@ export function SaleFormModal({
                                 }}
                                 options={bookOptions}
                                 placeholder="Selecione um livro disponível"
+                                searchPlaceholder="Digite o título ou autor do livro..."
                                 error={Boolean(errors.bookId)}
                             />
                         )}
@@ -181,7 +192,7 @@ export function SaleFormModal({
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">Quantidade</label>
+                    <label className="text-xs font-medium text-foreground/80">Quantidade</label>
                     <Input
                         placeholder="1"
                         inputMode="numeric"
@@ -210,12 +221,22 @@ export function SaleFormModal({
                     )}
                 </div>
 
-                <div className="p-3 rounded-xl bg-muted/40 border border-border/60 flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground">Valor Total:</span>
-                    <strong className="text-base font-bold text-foreground">{formatCurrency(total)}</strong>
+                {/* resumo do total com breakdown no padrao dub */}
+                <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-[#e5e5e5] bg-[#fafafa]">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-[#737373]">Valor Total</span>
+                        {selectedBook && (
+                            <span className="text-[11px] text-[#737373]">
+                                ({quantityValue || 0} × {formatCurrency(selectedBook.price)})
+                            </span>
+                        )}
+                    </div>
+                    <span className="text-lg font-bold tracking-tight text-[#171717] font-mono">
+                        {formatCurrency(total)}
+                    </span>
                 </div>
 
-                <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#f0f0f0]">
                     <Button
                         type="button"
                         variant="cancel"
@@ -230,8 +251,16 @@ export function SaleFormModal({
                         size="default"
                         hoverLift
                         disabled={submitting}
+                        className="gap-2"
                     >
-                        {submitting ? 'Registrando...' : 'Confirmar Pedido'}
+                        {submitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Registrando...</span>
+                            </>
+                        ) : (
+                            'Confirmar Pedido'
+                        )}
                     </Button>
                 </div>
             </form>
