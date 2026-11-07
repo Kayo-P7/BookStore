@@ -82,7 +82,7 @@ export function SaleFormModal({
     const bookOptions = books.map(b => ({
         value: String(b.id),
         label: `${b.title} — ${formatCurrency(b.price)} (${b.stock} em estoque)`,
-        description: b.authors ? `Autor(es): ${b.authors}` : undefined,
+        description: [b.authors ? `Autor: ${b.authors}` : '', b.isbn ? `ISBN: ${b.isbn}` : ''].filter(Boolean).join(' • ') || undefined,
         disabled: Number(b.stock) <= 0
     }));
 
