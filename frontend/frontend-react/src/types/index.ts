@@ -4,10 +4,42 @@ export interface Book {
     id: number;
     title: string;
     authors?: string;
+    isbn?: string;
+    publisher?: string;
+    description?: string;
     price: number;
     stock: number;
     createdAt?: string;
     updatedAt?: string;
+}
+
+export interface GoogleBookVolumeInfo {
+    title: string;
+    authors?: string[];
+    publisher?: string;
+    publishedDate?: string;
+    description?: string;
+    industryIdentifiers?: Array<{
+        type: string;
+        identifier: string;
+    }>;
+    pageCount?: number;
+    categories?: string[];
+    imageLinks?: {
+        smallThumbnail?: string;
+        thumbnail?: string;
+    };
+    language?: string;
+}
+
+export interface GoogleBookItem {
+    id: string;
+    volumeInfo: GoogleBookVolumeInfo;
+}
+
+export interface GoogleBooksSearchResponse {
+    items?: GoogleBookItem[];
+    totalItems?: number;
 }
 
 export interface Customer {
