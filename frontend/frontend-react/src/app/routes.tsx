@@ -26,10 +26,12 @@ export function AppRoutes() {
             <Route path="/" element={<AppLayout />}>
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
-                <Route path="books" element={<BooksPage />} />
+                <Route path="catalog" element={<BooksPage />} />
+                <Route path="books" element={<Navigate to="/catalog" replace />} />
                 <Route path="customers" element={<CustomersPage />} />
                 <Route path="sales" element={<SalesPage />} />
-                <Route path="services" element={<ServicesPage />} />
+                <Route path="logistics" element={<ServicesPage />} />
+                <Route path="services" element={<Navigate to="/logistics" replace />} />
                 <Route path="settings" element={<SettingsPage />} />
             </Route>
 

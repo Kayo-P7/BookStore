@@ -27,37 +27,37 @@ export function Sidebar({
         {
             to: '/dashboard',
             label: 'Dashboard',
-            description: 'Visão geral e métricas',
+            description: 'Indicadores e métricas operacionais',
             icon: LayoutDashboard
         },
         {
-            to: '/books',
-            label: 'Catálogo de Livros',
-            description: 'Estoque e títulos',
+            to: '/catalog',
+            label: 'Catálogo',
+            description: 'Inventário e títulos do acervo',
             icon: BookOpen
         },
         {
             to: '/customers',
-            label: 'Usuários & Clientes',
-            description: 'Gestão e busca de CEP',
+            label: 'Clientes',
+            description: 'Base de clientes e contatos',
             icon: Users
         },
         {
             to: '/sales',
-            label: 'Vendas & Pedidos',
-            description: 'Registro e histórico',
+            label: 'Vendas',
+            description: 'Transações comerciais e pedidos',
             icon: ShoppingBag
         },
         {
-            to: '/services',
-            label: 'Busca de Endereços',
-            description: 'Localização e logradouros',
+            to: '/logistics',
+            label: 'Logística',
+            description: 'Localização e consulta de CEP',
             icon: MapPin
         },
         {
             to: '/settings',
             label: 'Configurações',
-            description: 'Status e diagnóstico',
+            description: 'Diagnóstico e saúde dos serviços',
             icon: Settings
         }
     ];
