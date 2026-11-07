@@ -16,21 +16,24 @@
                 @click="findCep"
                 :disabled="loading"
             >
-                {{ loading ? 'Consultando...' : 'Consultar Endereço' }}
+                <span v-if="loading" class="spinner"></span>
+                <span>{{ loading ? 'Consultando...' : 'Consultar Endereço' }}</span>
             </button>
         </div>
 
-        <div v-if="address" class="result">
-            <b>{{ address.logradouro || 'Logradouro não informado' }}</b>
-            <p>
-                {{ address.bairro || 'Bairro não informado' }}
-                •
-                {{ address.localidade }} / {{ address.uf }}
-            </p>
-            <small>CEP: {{ address.cep }}</small>
-        </div>
+        <Transition name="liquid" mode="out-in">
+            <div v-if="address" :key="address.cep || 'result'" class="result">
+                <b>{{ address.logradouro || 'Logradouro não informado' }}</b>
+                <p>
+                    {{ address.bairro || 'Bairro não informado' }}
+                    •
+                    {{ address.localidade }} / {{ address.uf }}
+                </p>
+                <small>CEP: {{ address.cep }}</small>
+            </div>
 
-        <p v-if="error" class="error">{{ error }}</p>
+            <p v-else-if="error" :key="error" class="error">{{ error }}</p>
+        </Transition>
     </section>
 </template>
 
