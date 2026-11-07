@@ -4,7 +4,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../..
 import { Button } from '../../components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
-import { useTheme } from '../../context/ThemeContext';
 import { cn } from '../../components/ui/button';
 
 interface ServicePing {
@@ -13,9 +12,8 @@ interface ServicePing {
 }
 
 export function SettingsPage() {
-    const { theme, setTheme } = useTheme();
     const [testing, setTesting] = React.useState(false);
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(4000);
+    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
     const [pings, setPings] = React.useState<Record<string, ServicePing>>({
         catalog: { status: 'idle', time: null },
         customer: { status: 'idle', time: null },
@@ -67,54 +65,20 @@ export function SettingsPage() {
                 <CardHeader>
                     <CardTitle className="text-lg font-bold">Aparência & Identidade Visual</CardTitle>
                     <CardDescription className="text-xs">
-                        Paleta verde com branco calibrada em espaço de cores oklch com suporte completo a tema escuro profundo.
+                        Design System minimalista no padrão Refero Dub com contraste limpo e paleta verde suave.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <button
-                            type="button"
-                            onClick={() => setTheme('dark')}
-                            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                                theme === 'dark'
-                                    ? 'border-primary ring-2 ring-primary/30 bg-primary/5'
-                                    : 'border-border/80 hover:border-border bg-card'
-                            }`}
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="font-bold text-sm text-foreground">Tema Escuro (Forest Obsidian)</span>
-                                {theme === 'dark' && (
-                                    <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-border/80 bg-muted/60 text-foreground">
-                                        Ativo
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                                Fundo obsidian profundo oklch com toques de menta esmeralda neon e glassmorphism suave.
-                            </p>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setTheme('light')}
-                            className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                                theme === 'light'
-                                    ? 'border-primary ring-2 ring-primary/30 bg-primary/5'
-                                    : 'border-border/80 hover:border-border bg-card'
-                            }`}
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="font-bold text-sm text-foreground">Tema Claro (Verde & Branco)</span>
-                                {theme === 'light' && (
-                                    <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-md border border-border/80 bg-muted/60 text-foreground">
-                                        Ativo
-                                    </span>
-                                )}
-                            </div>
-                            <p className="text-xs text-muted-foreground leading-relaxed">
-                                Fundo branco com gradiente a 135deg, verde esmeralda vívido e bordas hairline translúcidas.
-                            </p>
-                        </button>
+                    <div className="max-w-md p-4 rounded-xl border border-primary ring-1 ring-primary/25 bg-white text-left">
+                        <div className="flex items-center justify-between mb-1.5">
+                            <span className="font-bold text-sm text-[#171717]">Tema Claro (Dub Minimalist)</span>
+                            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">
+                                Ativo Padrão
+                            </span>
+                        </div>
+                        <p className="text-xs text-[#737373] leading-relaxed">
+                            Fundo papel suave, cartões brancos sólidos, bordas hairline de 1px e verde floresta refinado. O tema escuro foi desativado temporariamente.
+                        </p>
                     </div>
                 </CardContent>
             </Card>

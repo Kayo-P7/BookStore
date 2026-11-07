@@ -49,7 +49,7 @@ export function Pagination({
                     <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                <span className="px-3 py-1 text-xs font-medium rounded-lg border border-border/80 bg-background/50">
+                <span className="px-3 py-1 text-xs font-medium rounded-lg border border-[#e5e5e5] bg-white text-[#171717]">
                     Página {currentPage} de {totalPages}
                 </span>
 

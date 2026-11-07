@@ -39,7 +39,7 @@ export function CustomersPage() {
     ]);
     const pageSize = 8;
 
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(4000);
+    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
 
     async function loadCustomers() {
         setLoading(true);
@@ -123,8 +123,8 @@ export function CustomersPage() {
 
             <RecordsTableLayout
                 title="Usuários & Clientes"
-                description={`Total de ${customers.length} usuários cadastrados no customer-service`}
-                actionLabel="Novo Cliente"
+                description={`Total de ${customers.length} leitores e clientes cadastrados no acervo`}
+                actionLabel="Novo Usuário"
                 onAction={() => {
                     setEditingCustomer(null);
                     setIsModalOpen(true);
@@ -246,7 +246,7 @@ export function CustomersPage() {
 
             <ConfirmDialog
                 isOpen={Boolean(customerToDelete)}
-                title="Excluir Cliente"
+                title="Excluir Usuário"
                 description={`Deseja realmente excluir "${customerToDelete?.name}"? Esta ação removerá o cadastro permanentemente e é irreversível.`}
                 confirmText="Excluir Permanentemente"
                 cancelText="Cancelar"

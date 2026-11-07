@@ -35,7 +35,7 @@ export function BooksPage() {
         'status'
     ]);
 
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(4000);
+    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
 
     async function loadBooks() {
         setLoading(true);
@@ -67,6 +67,7 @@ export function BooksPage() {
             showNotice('Livro cadastrado com sucesso no catálogo.', 'success');
             await loadBooks();
             setCurrentPage(1);
+            return true;
         } catch {
             showNotice('Erro ao cadastrar livro. Tente novamente.', 'error');
             throw new Error('Falha ao salvar livro');

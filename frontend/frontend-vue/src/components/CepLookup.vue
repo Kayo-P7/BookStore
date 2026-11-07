@@ -16,7 +16,7 @@
                 @click="findCep"
                 :disabled="loading"
             >
-                {{ loading ? 'Consultando...' : 'Consultar ViaCEP' }}
+                {{ loading ? 'Consultando...' : 'Consultar Endereço' }}
             </button>
         </div>
 
@@ -80,8 +80,9 @@ export default {
             }
         }
 
-        // executa busca de cep evitando consultas redundantes do mesmo valor
+        // executa busca de cep evitando consultas redundantes e duplo clique
         async function findCep() {
+            if (loading.value) return;
             const cleanCep = cep.value.replace(/\D/g, '');
             if (cleanCep.length !== 8) {
                 error.value = 'Digite um CEP válido com 8 números.';

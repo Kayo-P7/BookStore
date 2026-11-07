@@ -5,7 +5,7 @@ import {
     BookOpen,
     Users,
     ShoppingBag,
-    Layers,
+    MapPin,
     Settings,
     X
 } from 'lucide-react';
@@ -50,10 +50,9 @@ export function Sidebar({
         },
         {
             to: '/services',
-            label: 'Serviços & Utilitários',
-            description: 'Módulo Vue integrado',
-            icon: Layers,
-            badge: 'Vue 3'
+            label: 'Busca de Endereços',
+            description: 'Localização e logradouros',
+            icon: MapPin
         },
         {
             to: '/settings',
@@ -88,29 +87,61 @@ export function Sidebar({
                                 to={item.to}
                                 className={({ isActive }) =>
                                     cn(
-                                        'group relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+                                        'group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-150',
                                         isActive
-                                            ? 'bg-primary/15 text-primary font-semibold shadow-sm border border-primary/20'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-accent/60',
+                                            ? 'bg-white text-[#171717] border border-[#e5e5e5] shadow-2xs'
+                                            : 'text-[#525252] hover:text-[#171717] hover:bg-[#f5f5f5]',
                                         collapsed && 'justify-center px-0'
                                     )
                                 }
                                 title={collapsed ? `${item.label} — ${item.description}` : undefined}
                             >
-                                <Icon className={cn('w-5 h-5 shrink-0 transition-transform group-hover:scale-110 duration-200')} />
-
-                                {!collapsed && (
-                                    <div className="flex-1 flex items-center justify-between min-w-0">
-                                        <div className="truncate">
-                                            <div className="text-sm font-medium leading-tight truncate">{item.label}</div>
-                                            <div className="text-[11px] text-muted-foreground/80 leading-tight truncate">{item.description}</div>
-                                        </div>
-                                        {item.badge && (
-                                            <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border border-border/80 bg-muted/60 text-muted-foreground">
-                                                {item.badge}
-                                            </span>
+                                {({ isActive }) => (
+                                    <>
+                                        {/* indicador lateral minimalista de pagina ativa */}
+                                        {isActive && (
+                                            <span
+                                                className={cn(
+                                                    'absolute top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-[#059669]',
+                                                    collapsed ? 'left-1' : 'left-1.5'
+                                                )}
+                                            />
                                         )}
-                                    </div>
+
+                                        <Icon
+                                            className={cn(
+                                                'w-5 h-5 shrink-0 transition-colors',
+                                                isActive
+                                                    ? 'text-[#059669]'
+                                                    : 'text-[#737373] group-hover:text-[#171717]'
+                                            )}
+                                        />
+
+                                        {!collapsed && (
+                                            <div className="flex-1 flex items-center justify-between min-w-0">
+                                                <div className="truncate">
+                                                    <div
+                                                        className={cn(
+                                                            'text-sm leading-tight truncate',
+                                                            isActive
+                                                                ? 'font-semibold text-[#171717]'
+                                                                : 'font-medium text-[#525252] group-hover:text-[#171717]'
+                                                        )}
+                                                    >
+                                                        {item.label}
+                                                    </div>
+                                                    <div className="text-[11px] text-[#737373] leading-tight truncate mt-0.5">
+                                                        {item.description}
+                                                    </div>
+                                                </div>
+                                                {item.badge && (
+                                                    <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded border border-[#e5e5e5] bg-[#fafafa] text-[#737373]">
+                                                        {item.badge}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </NavLink>
                         );
@@ -137,7 +168,7 @@ export function Sidebar({
                             <button
                                 type="button"
                                 onClick={onCloseMobile}
-                                className="text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 dark:hover:text-red-300 p-1.5 rounded-lg transition-all duration-200 hover:rotate-90 active:scale-90 cursor-pointer"
+                                className="text-red-500 hover:text-red-700 bg-red-50/70 hover:bg-red-100 border border-red-200/60 p-1.5 rounded-lg transition-all duration-200 hover:rotate-90 active:scale-90 cursor-pointer"
                                 title="Fechar menu"
                             >
                                 <X className="w-5 h-5" />
@@ -154,18 +185,42 @@ export function Sidebar({
                                         onClick={onCloseMobile}
                                         className={({ isActive }) =>
                                             cn(
-                                                'flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200',
+                                                'group relative flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-150',
                                                 isActive
-                                                    ? 'bg-primary/15 text-primary font-semibold border border-primary/20'
-                                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
+                                                    ? 'bg-white text-[#171717] border border-[#e5e5e5] shadow-2xs'
+                                                    : 'text-[#525252] hover:text-[#171717] hover:bg-[#f5f5f5]'
                                             )
                                         }
                                     >
-                                        <Icon className="w-5 h-5 shrink-0" />
-                                        <div className="flex-1 truncate">
-                                            <div className="text-sm font-medium leading-tight">{item.label}</div>
-                                            <div className="text-xs text-muted-foreground">{item.description}</div>
-                                        </div>
+                                        {({ isActive }) => (
+                                            <>
+                                                {isActive && (
+                                                    <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-[#059669]" />
+                                                )}
+
+                                                <Icon
+                                                    className={cn(
+                                                        'w-5 h-5 shrink-0 transition-colors',
+                                                        isActive
+                                                            ? 'text-[#059669]'
+                                                            : 'text-[#737373] group-hover:text-[#171717]'
+                                                    )}
+                                                />
+                                                <div className="flex-1 truncate">
+                                                    <div
+                                                        className={cn(
+                                                            'text-sm leading-tight',
+                                                            isActive
+                                                                ? 'font-semibold text-[#171717]'
+                                                                : 'font-medium text-[#525252]'
+                                                        )}
+                                                    >
+                                                        {item.label}
+                                                    </div>
+                                                    <div className="text-xs text-[#737373] mt-0.5">{item.description}</div>
+                                                </div>
+                                            </>
+                                        )}
                                     </NavLink>
                                 );
                             })}

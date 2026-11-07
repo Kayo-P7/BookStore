@@ -85,7 +85,7 @@ export function ForgotPasswordPage() {
                 size="lg"
                 hoverLift
                 disabled={submitting}
-                className="w-full mt-2 font-semibold shadow-md shadow-primary/20"
+                className="w-full mt-2 font-semibold shadow-2xs hover:shadow-xs"
             >
                 <KeyRound className="w-4 h-4" />
                 {submitting ? 'Enviando...' : 'Recuperar Senha'}

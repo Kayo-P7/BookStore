@@ -6,8 +6,8 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
         <div
             ref={ref}
             className={cn(
-                'rounded-2xl transition-all duration-300',
-                glass ? 'glass-card' : 'bg-card text-card-foreground border border-border/80 shadow-sm',
+                'rounded-xl transition-all duration-200',
+                glass ? 'glass-card' : 'bg-card text-card-foreground border border-border shadow-xs',
                 hoverLift && 'hover-lift',
                 className
             )}

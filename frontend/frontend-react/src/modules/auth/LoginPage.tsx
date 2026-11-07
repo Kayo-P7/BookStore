@@ -99,7 +99,7 @@ export function LoginPage() {
                 size="lg"
                 hoverLift
                 disabled={submitting}
-                className="w-full mt-2 font-semibold shadow-md shadow-primary/20"
+                className="w-full mt-2 font-semibold shadow-2xs hover:shadow-xs"
             >
                 <LogIn className="w-4 h-4" />
                 {submitting ? 'Autenticando...' : 'Acessar Painel'}

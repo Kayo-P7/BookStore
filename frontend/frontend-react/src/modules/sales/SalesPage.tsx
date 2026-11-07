@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useLocation } from 'react-router-dom';
 import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTableLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { SkeletonTable } from '../../components/ui/skeleton';
@@ -37,7 +38,16 @@ export function SalesPage() {
     ]);
     const pageSize = 10;
 
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(4000);
+    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
+    const location = useLocation();
+
+    // abertura fluida do modal quando navegado a partir do botao 'Nova Venda' da dashboard
+    React.useEffect(() => {
+        if (location.state && (location.state as { openModal?: boolean }).openModal) {
+            setIsModalOpen(true);
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
     async function loadData() {
         setLoading(true);

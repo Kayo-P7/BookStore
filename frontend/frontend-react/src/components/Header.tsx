@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen, PanelLeftClose, PanelLeftOpen, Menu } from 'lucide-react';
-import { ThemeToggle } from './ui/theme-toggle';
 import { UserProfileDropdown } from './UserProfileDropdown';
 
 interface HeaderProps {
@@ -59,12 +58,8 @@ export function Header({
                 </Link>
             </div>
 
-            {/* lado direito: alternador de tema liquid e perfil */}
+            {/* lado direito: perfil do usuario com avatar circular */}
             <div className="flex items-center gap-2 sm:gap-3">
-                <ThemeToggle />
-
-                <div className="h-6 w-px bg-border/60 mx-1 hidden sm:block" />
-
                 <UserProfileDropdown />
             </div>
         </header>

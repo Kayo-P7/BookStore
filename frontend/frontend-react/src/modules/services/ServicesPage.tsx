@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { RefreshCw, ExternalLink } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
+import { RefreshCw, ExternalLink, MapPin } from 'lucide-react';
+import { Card, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -21,14 +21,19 @@ export function ServicesPage() {
     }, [theme]);
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="space-y-6 animate-liquid-in">
             <Card className="p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <CardTitle className="text-xl font-bold">Serviços ao Cliente & Utilitários</CardTitle>
-                        <CardDescription className="mt-1 text-xs sm:text-sm">
-                            Módulo integrado em Vue 3 para consulta rápida de endereços (ViaCEP) e calendário oficial de feriados.
-                        </CardDescription>
+                    <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0 mt-0.5">
+                            <MapPin className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <CardTitle className="text-xl font-bold">Busca de Endereços & Localização</CardTitle>
+                            <CardDescription className="mt-1 text-xs sm:text-sm">
+                                Consulta rápida de CEP, logradouros, bairros e calendário de funcionamento da livraria.
+                            </CardDescription>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2.5">
@@ -45,7 +50,7 @@ export function ServicesPage() {
                             href={vueUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center gap-2 h-8 px-3 rounded-xl text-xs font-medium border border-border/80 bg-background/50 hover:bg-accent hover:text-accent-foreground backdrop-blur-sm transition-all"
+                            className="inline-flex items-center justify-center gap-2 h-8 px-3 rounded-lg text-xs font-medium border border-border/80 bg-background/50 hover:bg-accent hover:text-accent-foreground backdrop-blur-sm transition-all"
                         >
                             <ExternalLink className="w-3.5 h-3.5" />
                             Abrir em nova aba
@@ -55,11 +60,11 @@ export function ServicesPage() {
             </Card>
 
             {/* frame embutido ocupando a altura ideal */}
-            <div className="glass-card rounded-2xl overflow-hidden border border-border/80 shadow-xl">
+            <div className="glass-modal rounded-2xl overflow-hidden border border-border/80 shadow-xl">
                 <iframe
                     key={iframeKey}
                     src={vueUrl}
-                    title="Módulo Vue BookStore"
+                    title="Busca de Endereços BookStore"
                     className="vue-embedded-frame w-full h-[calc(100vh-250px)] min-h-[580px] border-0"
                     onLoad={e => {
                         const target = e.target as HTMLIFrameElement;

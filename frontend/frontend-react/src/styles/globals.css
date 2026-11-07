@@ -20,85 +20,49 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
 }
 
-/* espaco de cores perceptualmente uniforme oklch para tema claro e escuro */
+/* dub design system tokens (refero styles - light mode) */
 :root {
-  --background: oklch(0.985 0.008 155);
-  --foreground: oklch(0.18 0.03 155);
+  --background: #fafafa;
+  --foreground: #171717;
 
-  --card: oklch(1 0 0 / 0.78);
-  --card-foreground: oklch(0.18 0.03 155);
+  --card: #ffffff;
+  --card-foreground: #171717;
 
-  --popover: oklch(1 0 0 / 0.95);
-  --popover-foreground: oklch(0.18 0.03 155);
+  --popover: #ffffff;
+  --popover-foreground: #171717;
 
-  /* verde esmeralda vibrante e elegante */
-  --primary: oklch(0.55 0.17 155);
-  --primary-hover: oklch(0.49 0.17 155);
-  --primary-foreground: oklch(0.99 0 0);
+  /* verde esmeralda suave padronizado com o avatar do usuario */
+  --primary: #059669;
+  --primary-hover: #047857;
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.95 0.015 155);
-  --secondary-foreground: oklch(0.24 0.03 155);
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
 
-  --muted: oklch(0.94 0.012 155);
-  --muted-foreground: oklch(0.48 0.03 155);
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
 
-  --accent: oklch(0.92 0.03 155);
-  --accent-foreground: oklch(0.22 0.04 155);
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
 
-  --destructive: oklch(0.58 0.22 25);
-  --destructive-foreground: oklch(0.99 0 0);
+  --destructive: #e11d48;
+  --destructive-foreground: #ffffff;
 
-  --border: oklch(0.88 0.015 155 / 0.7);
-  --input: oklch(0.88 0.015 155 / 0.85);
-  --ring: oklch(0.55 0.17 155);
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #171717;
 
-  --radius: 0.75rem;
+  --radius: 0.625rem;
 
-  --bg-gradient: linear-gradient(135deg, oklch(0.99 0.006 155) 0%, oklch(0.955 0.018 155) 100%);
   --sidebar-w-expanded: 18rem;
   --sidebar-w-collapsed: 5rem;
-}
-
-.dark,
-[data-theme="dark"] {
-  --background: oklch(0.11 0.022 155);
-  --foreground: oklch(0.96 0.01 155);
-
-  --card: oklch(0.15 0.025 155 / 0.72);
-  --card-foreground: oklch(0.96 0.01 155);
-
-  --popover: oklch(0.14 0.025 155 / 0.95);
-  --popover-foreground: oklch(0.96 0.01 155);
-
-  /* menta esmeralda luminoso para contraste no tema escuro */
-  --primary: oklch(0.68 0.185 155);
-  --primary-hover: oklch(0.74 0.185 155);
-  --primary-foreground: oklch(0.10 0.03 155);
-
-  --secondary: oklch(0.19 0.025 155);
-  --secondary-foreground: oklch(0.96 0.01 155);
-
-  --muted: oklch(0.18 0.02 155);
-  --muted-foreground: oklch(0.65 0.025 155);
-
-  --accent: oklch(0.20 0.035 155);
-  --accent-foreground: oklch(0.96 0.01 155);
-
-  --destructive: oklch(0.58 0.22 25);
-  --destructive-foreground: oklch(0.99 0 0);
-
-  --border: oklch(0.25 0.025 155 / 0.7);
-  --input: oklch(0.25 0.025 155 / 0.85);
-  --ring: oklch(0.68 0.185 155);
-
-  --bg-gradient: linear-gradient(135deg, oklch(0.12 0.022 155) 0%, oklch(0.08 0.015 155) 100%);
 }
 
 * {
@@ -107,8 +71,7 @@
 }
 
 body {
-  background: var(--bg-gradient);
-  background-attachment: fixed;
+  background: var(--background);
   color: var(--foreground);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
@@ -116,55 +79,55 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* utilitarios de glassmorphism */
-.glass-card {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid oklch(1 1 1 / 0.18);
-  box-shadow: 0 10px 30px -10px oklch(0 0 0 / 0.06);
-}
-
-.dark .glass-card,
-[data-theme="dark"] .glass-card {
-  border: 1px solid oklch(1 1 1 / 0.08);
-  box-shadow: 0 12px 36px -10px oklch(0 0 0 / 0.35);
+/* cards no padrao dub: fundo branco, borda hairline 1px #e5e5e5, sem elevacao pesada */
+.glass-card,
+.dub-card {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 0.75rem; /* 12px */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
 
 .glass-header {
-  background: oklch(var(--card) / 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .glass-sidebar {
-  background: var(--card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid var(--border);
+  background: #fafafa;
+  border-right: 1px solid #e5e5e5;
+}
+
+/* modal dub: container solido branco com borda 1px hairline e sombra sutil */
+.glass-modal,
+.dub-modal {
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 1rem; /* 16px */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
 }
 
 .glass-pill {
-  background: oklch(var(--card) / 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border);
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
   border-radius: 9999px;
 }
 
 /* efeito de elevacao interativa hover-lift */
 .hover-lift {
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px -10px oklch(0.55 0.17 155 / 0.18);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.06);
+  border-color: #d4d4d4;
 }
 
 .hover-lift:active {
-  transform: translateY(0) scale(0.99);
+  transform: translateY(0);
 }
 
 /* esferas dinamicas com desfoque gaussiano para auth layout */
@@ -207,77 +170,102 @@ body {
     linear-gradient(to bottom, oklch(0.68 0.185 155 / 0.05) 1px, transparent 1px);
 }
 
-/* animacoes suaves de fade in e fade out para avisos de tela */
-@keyframes noticeFadeIn {
-  from {
+/* animacoes fluidas de surgimento e desaparecimento liquid para avisos de tela */
+@keyframes noticeLiquidIn {
+  0% {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-14px) scale(0.97);
   }
-  to {
+  60% {
+    opacity: 0.95;
+    transform: translateY(1px) scale(1.003);
+  }
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
-@keyframes noticeFadeOut {
-  from {
+@keyframes noticeLiquidOut {
+  0% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
-  to {
+  40% {
+    opacity: 0.8;
+    transform: translateY(-2px) scale(0.99);
+  }
+  100% {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-12px) scale(0.95);
   }
 }
 
 .notice-fade-in {
-  animation: noticeFadeIn 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: noticeLiquidIn 380ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
 .notice-fade-out {
-  animation: noticeFadeOut 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: noticeLiquidOut 340ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
-/* animacoes de modais e dropdowns no padrao apple easing */
+/* animacoes e transicoes fluidas no padrao apple easing */
+@keyframes liquidFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-liquid-in {
+  animation: liquidFadeIn 340ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @keyframes dialogFade {
-  from {
+  0% {
     opacity: 0;
   }
-  to {
+  100% {
     opacity: 1;
   }
 }
 
 @keyframes dialogPop {
-  from {
+  0% {
     opacity: 0;
-    transform: scale(0.94) translateY(6px);
+    transform: scale(0.95) translateY(10px);
   }
-  to {
+  100% {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
 }
 
 @keyframes dropdownFade {
-  from {
+  0% {
     opacity: 0;
-    transform: scale(0.95) translateY(-4px);
+    transform: scale(0.96) translateY(-4px);
   }
-  to {
+  100% {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
 }
 
 .animate-dialog-fade {
-  animation: dialogFade 260ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dialogFade 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-dialog-pop {
-  animation: dialogPop 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dialogPop 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-dropdown-fade {
-  animation: dropdownFade 170ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: dropdownFade 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

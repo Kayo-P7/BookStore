@@ -78,7 +78,7 @@ export function RecordsTableLayout({
     return (
         <Card className="w-full">
             {/* barra superior com titulo e acao rapida de criacao */}
-            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-border/50">
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-[#f0f0f0]">
                 <div>
                     <CardTitle className="text-xl font-bold">{title}</CardTitle>
                     <CardDescription className="mt-1">{description}</CardDescription>
@@ -126,8 +126,8 @@ export function RecordsTableLayout({
                         </Button>
 
                         {columnDropdownOpen && (
-                            <div className="absolute right-0 mt-2 w-56 rounded-2xl glass-card border border-border/80 shadow-2xl p-2 z-50 animate-dropdown-fade">
-                                <div className="px-3 py-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase font-mono border-b border-border/50">
+                            <div className="absolute right-0 mt-2 w-56 rounded-xl bg-white border border-[#e5e5e5] shadow-xl p-2 z-50 animate-dropdown-fade">
+                                <div className="px-3 py-2 text-[11px] font-semibold tracking-wider text-[#737373] uppercase font-mono border-b border-[#f0f0f0]">
                                     Exibir Colunas
                                 </div>
                                 <div className="py-1 max-h-56 overflow-y-auto space-y-0.5">

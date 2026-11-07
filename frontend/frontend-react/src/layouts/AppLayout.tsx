@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Sidebar } from '../components/Sidebar';
 import { cn } from '../components/ui/button';
 
 export function AppLayout() {
+    const location = useLocation();
     const [collapsed, setCollapsed] = React.useState<boolean>(() => {
         return localStorage.getItem('bookstore-sidebar-collapsed') === 'true';
     });
@@ -31,7 +32,7 @@ export function AppLayout() {
     }, []);
 
     return (
-        <div className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary">
+        <div className="min-h-screen flex flex-col bg-background text-foreground antialiased">
             {/* header superior 100% largura fixo no topo com alternador responsivo */}
             <Header
                 collapsed={collapsed}
@@ -55,7 +56,7 @@ export function AppLayout() {
                         collapsed ? 'md:ml-20' : 'md:ml-72'
                     )}
                 >
-                    <div className="w-full">
+                    <div key={location.pathname} className="w-full animate-liquid-in">
                         <Outlet />
                     </div>
                 </main>

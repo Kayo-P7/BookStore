@@ -89,8 +89,8 @@ export function DashboardPage() {
                         variant="default"
                         size="default"
                         hoverLift
-                        onClick={() => navigate('/sales')}
-                        className="gap-2 shadow-md shadow-primary/20"
+                        onClick={() => navigate('/sales', { state: { openModal: true } })}
+                        className="gap-2 shadow-2xs hover:shadow-xs active:scale-95"
                     >
                         <Plus className="w-4 h-4" />
                         <span>Nova Venda</span>
@@ -126,7 +126,7 @@ export function DashboardPage() {
                         <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground font-mono sm:font-sans">
                             {customers.length}
                         </div>
-                        <p className="text-xs text-muted-foreground/80 mt-1">Usuários com endereço ViaCEP</p>
+                        <p className="text-xs text-muted-foreground/80 mt-1">Leitores e clientes com cadastro ativo</p>
                     </div>
                 </Card>
 

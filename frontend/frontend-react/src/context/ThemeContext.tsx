@@ -11,38 +11,30 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setThemeState] = useState<Theme>(() => {
-        const saved = localStorage.getItem('bookstore-theme') as Theme | null;
-        if (saved === 'light' || saved === 'dark') return saved;
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    });
+    // tema travado em 'light' no padrao dub conforme solicitado pelo usuario
+    const [theme] = useState<Theme>('light');
 
     useEffect(() => {
         const root = document.documentElement;
-        if (theme === 'dark') {
-            root.classList.add('dark');
-            root.setAttribute('data-theme', 'dark');
-        } else {
-            root.classList.remove('dark');
-            root.setAttribute('data-theme', 'light');
-        }
-        localStorage.setItem('bookstore-theme', theme);
+        root.classList.remove('dark');
+        root.setAttribute('data-theme', 'light');
+        localStorage.setItem('bookstore-theme', 'light');
 
         // sincroniza com iframe do modulo vue se presente na tela
         const iframes = document.querySelectorAll<HTMLIFrameElement>('iframe');
         iframes.forEach(iframe => {
             if (iframe.contentWindow) {
-                iframe.contentWindow.postMessage({ type: 'THEME_CHANGE', theme }, '*');
+                iframe.contentWindow.postMessage({ type: 'THEME_CHANGE', theme: 'light' }, '*');
             }
         });
-    }, [theme]);
+    }, []);
 
     function toggleTheme() {
-        setThemeState(prev => (prev === 'dark' ? 'light' : 'dark'));
+        // desativado temporariamente para manter somente tema claro no padrao dub
     }
 
-    function setTheme(nextTheme: Theme) {
-        setThemeState(nextTheme);
+    function setTheme(_nextTheme: Theme) {
+        // mantido apenas para compatibilidade de tipo
     }
 
     return (

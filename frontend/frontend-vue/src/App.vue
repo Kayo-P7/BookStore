@@ -23,11 +23,11 @@ export default {
     data() {
         return {
             isEmbedded: window.self !== window.top,
-            theme: 'dark'
+            theme: 'light'
         };
     },
     mounted() {
-        const savedTheme = localStorage.getItem('bookstore-theme') || 'dark';
+        const savedTheme = localStorage.getItem('bookstore-theme') || 'light';
         this.applyTheme(savedTheme);
 
         // escuta alteracao de tema enviada pelo portal react

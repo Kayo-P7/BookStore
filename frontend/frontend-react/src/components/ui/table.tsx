@@ -3,7 +3,7 @@ import { cn } from './button';
 
 export const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
     ({ className, ...props }, ref) => (
-        <div className="relative w-full overflow-auto rounded-xl border border-border/80 bg-card/60 backdrop-blur-sm">
+        <div className="relative w-full overflow-auto rounded-xl border border-[#e5e5e5] bg-white">
             <table
                 ref={ref}
                 className={cn('w-full caption-bottom text-sm', className)}
@@ -16,7 +16,7 @@ Table.displayName = 'Table';
 
 export const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
     ({ className, ...props }, ref) => (
-        <thead ref={ref} className={cn('[&_tr]:border-b bg-muted/40 backdrop-blur-md', className)} {...props} />
+        <thead ref={ref} className={cn('[&_tr]:border-b border-[#e5e5e5] bg-[#fafafa]', className)} {...props} />
     )
 );
 TableHeader.displayName = 'TableHeader';
@@ -48,7 +48,7 @@ export const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttribut
         <tr
             ref={ref}
             className={cn(
-                'border-b border-border/50 transition-colors hover:bg-muted/40 data-[state=selected]:bg-muted',
+                'border-b border-[#f0f0f0] transition-colors hover:bg-[#fafafa] data-[state=selected]:bg-[#f5f5f5]',
                 className
             )}
             {...props}
