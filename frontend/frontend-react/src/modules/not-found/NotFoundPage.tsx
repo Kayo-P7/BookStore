@@ -66,11 +66,11 @@ export function NotFoundPage() {
                     </span>
                     <div className="grid grid-cols-3 gap-2">
                         <Link
-                            to="/books"
+                            to="/catalog"
                             className="p-2.5 rounded-lg border border-[#e5e5e5] bg-[#fafafa] hover:bg-emerald-50/50 hover:border-emerald-200 transition-colors flex flex-col items-center gap-1 group"
                         >
                             <BookOpen className="w-4 h-4 text-[#737373] group-hover:text-[#059669] transition-colors" />
-                            <span className="text-xs font-medium text-[#171717]">Livros</span>
+                            <span className="text-xs font-medium text-[#171717]">Catálogo</span>
                         </Link>
 
                         <Link

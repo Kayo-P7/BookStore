@@ -21,17 +21,6 @@ export function AuthLayout() {
                     <Outlet />
                 </div>
             </div>
-
-            {/* rodape no padrao dub: capsula solida branca com borda #e5e5e5 */}
-            <div className="relative z-10 mt-2 mb-4">
-                <div className="bg-white rounded-full px-4 py-1.5 flex items-center gap-2.5 shadow-2xs border border-[#e5e5e5] text-xs text-[#737373]">
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                    </span>
-                    <span className="font-mono text-[11px]">Sistema Seguro • Criptografia TLS • Microsserviços Ativos</span>
-                </div>
-            </div>
         </div>
     );
 }

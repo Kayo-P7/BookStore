@@ -82,7 +82,7 @@ export function SaleFormModal({
     const bookOptions = books.map(b => ({
         value: String(b.id),
         label: `${b.title} — ${formatCurrency(b.price)} (${b.stock} em estoque)`,
-        description: b.authors ? `Autor(es): ${b.authors}` : undefined,
+        description: [b.authors ? `Autor: ${b.authors}` : '', b.isbn ? `ISBN: ${b.isbn}` : ''].filter(Boolean).join(' • ') || undefined,
         disabled: Number(b.stock) <= 0
     }));
 
@@ -129,7 +129,7 @@ export function SaleFormModal({
             <form noValidate onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
                 {/* alerta de erro interno do modal */}
                 {formError && (
-                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-in fade-in duration-150">
+                    <div className="p-3 rounded-lg border border-rose-200 bg-rose-50 text-[#e11d48] text-xs flex items-center gap-2 animate-message-liquid">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{formError}</span>
                     </div>

@@ -126,8 +126,8 @@ export function SalesPage() {
             />
 
             <RecordsTableLayout
-                title="Vendas & Pedidos"
-                description={`Total de ${sales.length} pedidos faturados no sistema`}
+                title="Gestão de Vendas"
+                description={`Total de ${sales.length} transações comerciais faturadas`}
                 actionLabel="Nova Venda"
                 onAction={() => setIsModalOpen(true)}
                 searchTerm={searchTerm}

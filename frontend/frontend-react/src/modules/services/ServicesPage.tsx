@@ -29,9 +29,9 @@ export function ServicesPage() {
                             <MapPin className="w-5 h-5" />
                         </div>
                         <div>
-                            <CardTitle className="text-xl font-bold">Busca de Endereços & Localização</CardTitle>
+                            <CardTitle className="text-xl font-bold">Logística & Endereços</CardTitle>
                             <CardDescription className="mt-1 text-xs sm:text-sm">
-                                Consulta rápida de CEP, logradouros, bairros e calendário de funcionamento da livraria.
+                                Consulta de CEP, logradouros, localização geográfica e calendário operacional.
                             </CardDescription>
                         </div>
                     </div>

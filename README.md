@@ -30,6 +30,9 @@ BookStore/
 ├── performance/              # Testes de carga com k6
 │   ├── bookstore-load-test.js
 │   └── README.md
+├── start-backend.sh          # Script de inicialização dos 3 microsserviços backend
+├── start-frontend.sh         # Script de inicialização dos frontends (React e Vue)
+├── stop-local.sh             # Script para interrupção de todos os serviços locais
 ├── docker-compose.yml        # Orquestração de todos os serviços em contêineres
 ├── .env.example              # Modelo padrão de variáveis de ambiente
 └── README.md                 # Documentação e instruções de execução
@@ -189,7 +192,40 @@ Execute cada componente diretamente no seu sistema operacional para depuração 
 
 ---
 
-### Passo 2: Executar os Microsserviços Backend
+### Método A: Inicialização Rápida via Scripts Automatizados (.sh) — Recomendado
+
+Para simplificar o desenvolvimento diário e evitar abrir múltiplos terminais manuais, utilize os scripts executáveis na raiz do repositório:
+
+#### 1. Iniciar os 3 Microsserviços Backend (Terminal 1)
+```bash
+./start-backend.sh
+```
+* **Validações Pré-Execução**: Confere a existência do `.env`, conexão com o PostgreSQL e a disponibilidade das portas (`8081`, `8082`, `8083`);
+* **Ordem de Inicialização**: Inicia `catalog-service` e `customer-service` em paralelo e, após estarem prontos, sobe o `sales-service`;
+* **Logs Isolados**: Cada serviço gera log em `logs/catalog-service.log`, `logs/customer-service.log` e `logs/sales-service.log` (acompanhe com `tail -f logs/*.log`);
+* **Health Check**: Monitora o endpoint `/actuator/health` de cada microsserviço até responder `UP`;
+* **Encerramento Limpo**: Ao pressionar `Ctrl + C`, finaliza todos os processos Java em background e libera as portas;
+* *Execução individual (opcional):* `./start-backend.sh catalog`, `./start-backend.sh customer` ou `./start-backend.sh sales`.
+
+#### 2. Iniciar os Frontends React e Vue (Terminal 2)
+```bash
+./start-frontend.sh
+```
+* **Instalação Automática**: Instala as dependências (`npm install`) caso a pasta `node_modules` não esteja presente;
+* **Inicialização Conjunta**: Inicia o frontend React (porta `5173`) e o frontend Vue (porta `5174`) simultaneamente;
+* **Logs Isolados**: Saídas direcionadas para `logs/frontend-react.log` e `logs/frontend-vue.log` (acompanhe com `tail -f logs/frontend-*.log`);
+* **Encerramento Limpo**: Ao pressionar `Ctrl + C`, finaliza todos os servidores Vite em execução;
+* *Execução individual (opcional):* `./start-frontend.sh react` ou `./start-frontend.sh vue`.
+
+#### 3. Interromper Todos os Serviços Locais
+Caso algum terminal tenha sido fechado de forma abrupta e as portas permaneçam ocupadas:
+```bash
+./stop-local.sh
+```
+
+---
+
+### Método B: Inicialização Manual Passo a Passo (Terminais Individuais)
 
 Graças ao plugin `spring-dotenv` configurado no `pom.xml`, o Spring Boot lê automaticamente seu `.env` ao inicializar.
 

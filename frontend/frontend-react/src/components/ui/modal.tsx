@@ -23,42 +23,67 @@ export function Modal({
     centerTitle = false
 }: ModalProps) {
     const [mounted, setMounted] = React.useState(false);
+    const [isRendered, setIsRendered] = React.useState(isOpen);
+    const [isClosing, setIsClosing] = React.useState(false);
 
     React.useEffect(() => {
         setMounted(true);
     }, []);
 
     React.useEffect(() => {
+        if (isOpen) {
+            setIsRendered(true);
+            setIsClosing(false);
+            document.body.style.overflow = 'hidden';
+        } else if (isRendered) {
+            setIsClosing(true);
+            const timer = setTimeout(() => {
+                setIsRendered(false);
+                setIsClosing(false);
+                document.body.style.overflow = '';
+            }, 220); // tempo exato da animacao de saida sem corte seco
+            return () => {
+                clearTimeout(timer);
+                document.body.style.overflow = '';
+            };
+        }
+    }, [isOpen, isRendered]);
+
+    React.useEffect(() => {
         function handleKeyDown(e: KeyboardEvent) {
-            if (e.key === 'Escape' && isOpen) {
+            if (e.key === 'Escape' && isOpen && !isClosing) {
                 onClose();
             }
         }
         if (isOpen) {
-            document.body.style.overflow = 'hidden';
             window.addEventListener('keydown', handleKeyDown);
         }
         return () => {
-            document.body.style.overflow = '';
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [isOpen, onClose]);
+    }, [isOpen, isClosing, onClose]);
 
-    if (!isOpen || !mounted) return null;
+    if (!isRendered || !mounted) return null;
 
     const modalContent = (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 animate-dialog-fade">
+        <div
+            className={cn(
+                'fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6',
+                isClosing ? 'animate-dialog-fade-out pointer-events-none' : 'animate-dialog-fade'
+            )}
+        >
             {/* backdrop dub refero: overlay escurecido em 100% da viewport */}
             <div
                 className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity cursor-pointer"
                 onClick={onClose}
             />
 
-            {/* container modal dub refero: branco solido, borda hairline #e5e5e5, centralizado na tela */}
+            {/* container modal dub refero: centralizado na tela com animacao elastica de mola (fade & scale) */}
             <div
                 className={cn(
                     'relative w-full z-10 bg-white border border-[#e5e5e5] rounded-2xl p-6 sm:p-7',
-                    'shadow-2xl shadow-black/10 animate-dialog-pop max-h-[90vh] overflow-y-auto',
+                    'shadow-2xl shadow-black/10 max-h-[90vh] overflow-y-auto',
+                    isClosing ? 'animate-dialog-pop-out' : 'animate-dialog-pop',
                     maxWidth
                 )}
             >
