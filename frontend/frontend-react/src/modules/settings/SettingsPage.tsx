@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Activity, Server, Database, Globe } from 'lucide-react';
+import { Activity, Server, Database, Globe, Check, AlertCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
-import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
+import { useScreenNotice } from '../../components/ui/screen-notice';
 import { cn } from '../../components/ui/button';
 
 interface ServicePing {
@@ -46,20 +46,18 @@ export function SettingsPage() {
             ping('vue', 'http://localhost:5174')
         ]);
 
+        const hasOffline = Object.values(results).some(r => r.status === 'offline');
         setPings(results);
         setTesting(false);
-        showNotice('Diagnóstico de conectividade dos serviços concluído.', 'success');
+        if (hasOffline) {
+            showNotice('Diagnóstico concluído (serviços offline detectados)', 'error');
+        } else {
+            showNotice('Diagnóstico de conectividade concluído', 'success');
+        }
     }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
-            {/* aviso suave com fade in e fade out exclusivo desta tela */}
-            <ScreenNotice
-                notice={notice}
-                isExiting={isExiting}
-                onClose={closeNotice}
-            />
-
             {/* aparencia e tema */}
             <Card>
                 <CardHeader>
@@ -96,17 +94,39 @@ export function SettingsPage() {
                         </CardDescription>
                     </div>
 
-                    <Button
-                        variant="default"
-                        size="sm"
-                        hoverLift
-                        onClick={testConnections}
-                        disabled={testing}
-                        className="gap-2 shrink-0"
-                    >
-                        <Server className="w-3.5 h-3.5" />
-                        {testing ? 'Testando...' : 'Testar Conexões Agora'}
-                    </Button>
+                    <div className="flex items-center gap-3 shrink-0">
+                        {notice && (
+                            <div
+                                role="status"
+                                className={cn(
+                                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border shadow-2xs',
+                                    notice.type === 'success'
+                                        ? 'bg-emerald-50/90 text-[#059669] border-emerald-200/80'
+                                        : 'bg-rose-50/90 text-[#e11d48] border-rose-200/80',
+                                    isExiting ? 'notice-fade-out pointer-events-none' : 'notice-fade-in'
+                                )}
+                            >
+                                {notice.type === 'success' ? (
+                                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                                ) : (
+                                    <AlertCircle className="w-3.5 h-3.5 stroke-[2.5]" />
+                                )}
+                                <span>{notice.message}</span>
+                            </div>
+                        )}
+
+                        <Button
+                            variant="default"
+                            size="sm"
+                            hoverLift
+                            onClick={testConnections}
+                            disabled={testing}
+                            className="gap-2 shrink-0"
+                        >
+                            <Server className="w-3.5 h-3.5" />
+                            {testing ? 'Testando...' : 'Testar Conexões Agora'}
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
