@@ -1,0 +1,13 @@
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+WORKDIR /workspace
+COPY pom.xml .
+COPY security-common security-common
+COPY catalog-service catalog-service
+COPY customer-service customer-service
+COPY sales-service sales-service
+RUN mvn -q -pl customer-service -am clean package -DskipTests
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=build /workspace/customer-service/target/customer-service-1.0.0.jar app.jar
+EXPOSE 8082
+ENTRYPOINT ["java","-XX:MaxRAMPercentage=75.0","-jar","/app/app.jar"]
