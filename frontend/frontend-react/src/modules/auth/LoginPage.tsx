@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { LogIn, Mail, Lock, AlertCircle, Shield, ShoppingBag } from 'lucide-react';
+import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { useAuth } from '../../context/AuthContext';
@@ -31,14 +31,13 @@ export function LoginPage() {
     const {
         register,
         handleSubmit,
-        setValue,
         formState: { errors }
     } = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
         mode: 'onChange',
         defaultValues: {
-            email: 'admin@bookstore.com',
-            password: '••••••••'
+            email: '',
+            password: ''
         }
     });
 
@@ -63,12 +62,6 @@ export function LoginPage() {
         }
     }
 
-    function quickFill(email: string, pass: string) {
-        setValue('email', email, { shouldValidate: true });
-        setValue('password', pass, { shouldValidate: true });
-        setAuthError(null);
-    }
-
     return (
         <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {authError && (
@@ -85,7 +78,7 @@ export function LoginPage() {
                 </label>
                 <Input
                     type="email"
-                    placeholder="operador@bookstore.com"
+                    placeholder="seu.email@empresa.com"
                     error={Boolean(errors.email)}
                     {...register('email')}
                 />
@@ -112,7 +105,7 @@ export function LoginPage() {
                 </div>
                 <Input
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="Sua senha de acesso"
                     error={Boolean(errors.password)}
                     {...register('password')}
                 />
@@ -136,32 +129,7 @@ export function LoginPage() {
                 {submitting ? 'Autenticando...' : 'Acessar Painel'}
             </Button>
 
-            {/* atalhos de preenchimento rapido para os perfis cadastrados */}
-            <div className="pt-2 border-t border-border/50">
-                <p className="text-[11px] text-muted-foreground text-center mb-2">
-                    Acesso rápido para testes de perfil:
-                </p>
-                <div className="grid grid-cols-2 gap-2">
-                    <button
-                        type="button"
-                        onClick={() => quickFill('admin@bookstore.com', 'admin123')}
-                        className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md border border-border bg-muted/40 hover:bg-muted text-[11px] font-medium text-foreground transition-colors cursor-pointer"
-                    >
-                        <Shield className="w-3 h-3 text-emerald-600" />
-                        <span>Admin</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => quickFill('vendedor@bookstore.com', 'vendedor123')}
-                        className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-md border border-border bg-muted/40 hover:bg-muted text-[11px] font-medium text-foreground transition-colors cursor-pointer"
-                    >
-                        <ShoppingBag className="w-3 h-3 text-teal-600" />
-                        <span>Vendedor</span>
-                    </button>
-                </div>
-            </div>
-
-            <div className="text-center">
+            <div className="text-center pt-2">
                 <span className="text-[11px] text-muted-foreground">
                     Acesso restrito a operadores autenticados da livraria.
                 </span>
