@@ -2,11 +2,12 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertCircle, Loader2, ShieldCheck, UserCheck } from 'lucide-react';
+import { AlertCircle, Loader2, ShieldCheck, UserCheck, Eye, EyeOff } from 'lucide-react';
 import { Modal } from '../../components/ui/modal';
 import { Button, cn } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Switch } from '../../components/ui/switch';
+import { PasswordRequirementTracker, getInputBorderState } from '../../components/ui/password-requirement-tracker';
 import { SystemUser, UserFormData, UserRole } from '../../types';
 
 interface UserFormModalProps {
@@ -25,6 +26,7 @@ export function UserFormModal({
     const isEdit = Boolean(editingUser);
     const [submitting, setSubmitting] = React.useState(false);
     const [formError, setFormError] = React.useState<string | null>(null);
+    const [showPassword, setShowPassword] = React.useState(false);
 
     const schema = React.useMemo(() => {
         return z.object({
@@ -38,13 +40,21 @@ export function UserFormModal({
                       .string()
                       .optional()
                       .refine(
-                          val => !val || val.length >= 6,
-                          'A nova senha deve conter no mínimo 6 caracteres.'
+                          val =>
+                              !val ||
+                              (val.length >= 8 &&
+                                  /[A-Z]/.test(val) &&
+                                  /[0-9]/.test(val) &&
+                                  /[^A-Za-z0-9\s]/.test(val)),
+                          'A nova senha deve conter no mínimo 8 caracteres, letra maiúscula, número e símbolo especial.'
                       )
                 : z
                       .string()
-                      .min(1, 'A senha provisória é obrigatória.')
-                      .min(6, 'A senha deve conter no mínimo 6 caracteres.'),
+                      .min(1, 'A senha de acesso é obrigatória.')
+                      .min(8, 'A senha deve conter no mínimo 8 caracteres.')
+                      .refine(val => /[A-Z]/.test(val), 'A senha deve conter pelo menos uma letra maiúscula.')
+                      .refine(val => /[0-9]/.test(val), 'A senha deve conter pelo menos um número.')
+                      .refine(val => /[^A-Za-z0-9\s]/.test(val), 'A senha deve conter pelo menos um símbolo especial.'),
             role: z.enum(['ADMIN', 'SELLER'] as const, {
                 errorMap: () => ({ message: 'Selecione o perfil de acesso.' })
             }),
@@ -75,9 +85,12 @@ export function UserFormModal({
 
     const selectedRole = watch('role');
     const isActive = watch('active');
+    const passwordValue = watch('password') || '';
+    const inputBorderState = getInputBorderState(passwordValue);
 
     React.useEffect(() => {
         setFormError(null);
+        setShowPassword(false);
         if (editingUser) {
             const normalizedRole = editingUser.role.includes('ADMIN') ? 'ADMIN' : 'SELLER';
             reset({
@@ -175,26 +188,53 @@ export function UserFormModal({
                     )}
                 </div>
 
-                {/* senha */}
+                {/* senha de acesso com alternancia de visibilidade e validador progressivo estilo wisis-front */}
                 <div>
                     <label className="block text-xs font-semibold text-[#171717] mb-1">
                         {isEdit ? 'Nova Senha (opcional)' : 'Senha de Acesso'}{' '}
                         {!isEdit && <span className="text-rose-500">*</span>}
                     </label>
-                    <Input
-                        {...register('password')}
-                        type="password"
-                        placeholder={isEdit ? 'Deixe em branco para manter a senha atual' : 'Mínimo de 6 caracteres'}
-                        disabled={submitting}
-                        autoComplete="new-password"
-                    />
+                    <div className="relative">
+                        <Input
+                            {...register('password')}
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder={isEdit ? 'Deixe em branco para manter a senha atual' : 'Insira sua senha'}
+                            disabled={submitting}
+                            autoComplete="new-password"
+                            className={cn(
+                                'pr-10 transition-all duration-200',
+                                inputBorderState === 'green' &&
+                                    'border-emerald-500 bg-emerald-50/20 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20',
+                                inputBorderState === 'yellow' &&
+                                    'border-amber-400 bg-amber-50/20 focus-visible:border-amber-400 focus-visible:ring-amber-400/20',
+                                inputBorderState === 'red' &&
+                                    'border-rose-400 bg-rose-50/20 focus-visible:border-rose-400 focus-visible:ring-rose-400/20'
+                            )}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(prev => !prev)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#171717] p-1 transition-colors cursor-pointer"
+                            title={showPassword ? 'Ocultar senha' : 'Exibir senha'}
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                    </div>
                     {errors.password && (
                         <p className="text-[11px] text-rose-600 mt-1">{errors.password.message}</p>
                     )}
-                    {isEdit && (
+                    {isEdit && !passwordValue && (
                         <p className="text-[11px] text-[#737373] mt-1">
                             Preencha apenas caso queira redefinir a credencial do operador.
                         </p>
+                    )}
+
+                    {/* frase fluida e dinamica dos requisitos de senha no padrao wisis-front */}
+                    {(!isEdit || passwordValue.length > 0) && (
+                        <div className="mt-2">
+                            <PasswordRequirementTracker password={passwordValue} />
+                        </div>
                     )}
                 </div>
 
