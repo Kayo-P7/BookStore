@@ -9,6 +9,7 @@ public record UserResponse(
     String email,
     String role,
     boolean active,
-    Instant createdAt
+    Instant createdAt,
+    Instant updatedAt
 ) {
 }

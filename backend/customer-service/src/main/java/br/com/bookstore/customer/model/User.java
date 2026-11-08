@@ -36,6 +36,22 @@ public class User {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt = Instant.now();
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
+
     public User() {
     }
 
@@ -46,6 +62,7 @@ public class User {
         this.role = role;
         this.active = true;
         this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     public Long getId() {
@@ -98,5 +115,13 @@ public class User {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

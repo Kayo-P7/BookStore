@@ -57,7 +57,7 @@ class UserServiceTest {
     void shouldFindAllUsers() {
         when(repo.findAll()).thenReturn(List.of(sampleUser));
         when(mapper.toResponseList(any())).thenReturn(List.of(
-                new UserResponse(1L, "Operador Teste", "operador@bookstore.com", SecurityRoles.ROLE_SELLER, true, Instant.now())
+                new UserResponse(1L, "Operador Teste", "operador@bookstore.com", SecurityRoles.ROLE_SELLER, true, Instant.now(), Instant.now())
         ));
 
         List<UserResponse> list = service.findAll();
@@ -79,7 +79,7 @@ class UserServiceTest {
         when(passwordEncoder.encode("senha123")).thenReturn("encoded_senha123");
         when(repo.save(any(User.class))).thenReturn(userEntity);
         when(mapper.toResponse(any())).thenReturn(
-                new UserResponse(2L, "Novo Vendedor", "novo@bookstore.com", SecurityRoles.ROLE_SELLER, true, Instant.now())
+                new UserResponse(2L, "Novo Vendedor", "novo@bookstore.com", SecurityRoles.ROLE_SELLER, true, Instant.now(), Instant.now())
         );
 
         UserResponse response = service.create(request);
@@ -109,7 +109,7 @@ class UserServiceTest {
         when(passwordEncoder.encode("novaSenha123")).thenReturn("encoded_nova_senha");
         when(repo.save(any(User.class))).thenReturn(sampleUser);
         when(mapper.toResponse(any())).thenReturn(
-                new UserResponse(1L, "Nome Atualizado", "operador@bookstore.com", SecurityRoles.ROLE_ADMIN, true, Instant.now())
+                new UserResponse(1L, "Nome Atualizado", "operador@bookstore.com", SecurityRoles.ROLE_ADMIN, true, Instant.now(), Instant.now())
         );
 
         UserResponse response = service.update(1L, request);

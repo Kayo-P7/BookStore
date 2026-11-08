@@ -102,7 +102,7 @@ class UserControllerSecurityTest {
     void shouldAllowUserCreationForAdminRole() throws Exception {
         UserRequest request = new UserRequest("Novo Operador", "novo@bookstore.com", "senha123", SecurityRoles.SELLER);
         UserResponse response = new UserResponse(
-                2L, "Novo Operador", "novo@bookstore.com", SecurityRoles.ROLE_SELLER, true, Instant.now()
+                2L, "Novo Operador", "novo@bookstore.com", SecurityRoles.ROLE_SELLER, true, Instant.now(), Instant.now()
         );
 
         when(userService.create(any(UserRequest.class))).thenReturn(response);

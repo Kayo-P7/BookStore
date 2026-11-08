@@ -82,6 +82,7 @@ export interface SystemUser {
     role: UserRole;
     active: boolean;
     createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface UserFormData {
