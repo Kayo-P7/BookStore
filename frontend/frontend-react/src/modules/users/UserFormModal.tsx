@@ -4,8 +4,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AlertCircle, Loader2, ShieldCheck, UserCheck } from 'lucide-react';
 import { Modal } from '../../components/ui/modal';
-import { Button } from '../../components/ui/button';
+import { Button, cn } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { Switch } from '../../components/ui/switch';
 import { SystemUser, UserFormData, UserRole } from '../../types';
 
 interface UserFormModalProps {
@@ -247,23 +248,49 @@ export function UserFormModal({
                 {/* status ativo / inativo */}
                 {isEdit && (
                     <div className="pt-2 border-t border-[#f0f0f0]">
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                {...register('active')}
-                                className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                            />
-                            <div>
-                                <span className="text-xs font-semibold text-[#171717]">
-                                    Usuário Ativo
-                                </span>
+                        <div
+                            onClick={() => setValue('active', !isActive, { shouldValidate: true, shouldDirty: true })}
+                            className="flex items-center justify-between p-3 rounded-xl border border-[#e5e5e5] bg-[#fafafa] hover:bg-[#f5f5f5] transition-colors cursor-pointer select-none"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={e => {
+                                if (e.key === ' ' || e.key === 'Enter') {
+                                    e.preventDefault();
+                                    setValue('active', !isActive, { shouldValidate: true, shouldDirty: true });
+                                }
+                            }}
+                        >
+                            <div className="space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-[#171717]">
+                                        Status do Usuário
+                                    </span>
+                                    <span
+                                        className={cn(
+                                            'text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors',
+                                            isActive
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+                                        )}
+                                    >
+                                        {isActive ? 'Ativo' : 'Inativo'}
+                                    </span>
+                                </div>
                                 <p className="text-[11px] text-[#737373]">
                                     {isActive
                                         ? 'O usuário pode entrar no sistema normalmente.'
                                         : 'Acesso bloqueado. O usuário não conseguirá realizar login.'}
                                 </p>
                             </div>
-                        </label>
+
+                            <Switch
+                                checked={isActive}
+                                onCheckedChange={checked =>
+                                    setValue('active', checked, { shouldValidate: true, shouldDirty: true })
+                                }
+                                aria-label="Alternar status do usuário"
+                            />
+                        </div>
                     </div>
                 )}
 
