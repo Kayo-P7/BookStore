@@ -9,8 +9,14 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: "0"
+    table: flyway_sales_history
+    locations: classpath:db/migration
 services:
   catalog-url: ${CATALOG_URL}
   customer-url: ${CUSTOMER_URL}

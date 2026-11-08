@@ -80,18 +80,24 @@ class BookControllerSecurityTest {
     }
 
     @Test
-    @DisplayName("deve proibir criacao de livro por perfil VENDEDOR retornando 403")
+    @DisplayName("deve permitir criacao de livro por perfil VENDEDOR retornando 201")
     @WithMockUser(roles = SecurityRoles.SELLER)
-    void shouldDenyBookCreationForSellerRole() throws Exception {
+    void shouldAllowBookCreationForSellerRole() throws Exception {
         BookRequest request = new BookRequest(
                 "Clean Code", "Robert C. Martin", "9780132350884", "Prentice Hall",
                 "Handbook of agile software", new BigDecimal("120.00"), 10
         );
+        BookResponse response = new BookResponse(
+                1L, "Clean Code", "Robert C. Martin", "9780132350884", "Prentice Hall",
+                "Handbook of agile software", new BigDecimal("120.00"), 10
+        );
+
+        when(bookService.save(any(BookRequest.class))).thenReturn(response);
 
         mockMvc.perform(post("/api/catalog/books")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isCreated());
     }
 
     @Test

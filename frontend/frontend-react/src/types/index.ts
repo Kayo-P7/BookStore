@@ -79,8 +79,9 @@ export interface SystemUser {
     id: number;
     name: string;
     email: string;
-    role: UserRole;
+    role: string;
     active: boolean;
+    mustChangePassword?: boolean;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -90,6 +91,7 @@ export interface UserFormData {
     email: string;
     password?: string;
     role: UserRole;
+    active?: boolean;
 }
 
 export interface AuthResponse {
@@ -100,4 +102,5 @@ export interface AuthResponse {
     name: string;
     email: string;
     role: UserRole;
+    mustChangePassword?: boolean;
 }

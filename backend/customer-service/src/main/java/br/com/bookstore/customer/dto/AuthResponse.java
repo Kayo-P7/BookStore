@@ -8,9 +8,14 @@ public record AuthResponse(
     Long userId,
     String name,
     String email,
-    String role
+    String role,
+    boolean mustChangePassword
 ) {
+    public AuthResponse(String accessToken, String refreshToken, Long userId, String name, String email, String role, boolean mustChangePassword) {
+        this(accessToken, refreshToken, "Bearer", userId, name, email, role, mustChangePassword);
+    }
+
     public AuthResponse(String accessToken, String refreshToken, Long userId, String name, String email, String role) {
-        this(accessToken, refreshToken, "Bearer", userId, name, email, role);
+        this(accessToken, refreshToken, "Bearer", userId, name, email, role, false);
     }
 }

@@ -41,10 +41,11 @@ type BookFormData = z.infer<typeof bookSchema>;
 interface BookFormModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (bookData: Omit<Book, 'id'>) => Promise<boolean>;
+    onSubmit: (bookData: Omit<Book, 'id'>, id?: number) => Promise<boolean>;
+    editingBook?: Book | null;
 }
 
-export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps) {
+export function BookFormModal({ isOpen, onClose, onSubmit, editingBook }: BookFormModalProps) {
     const [submitting, setSubmitting] = React.useState(false);
     const [formError, setFormError] = React.useState<string | null>(null);
     const isSubmittingRef = React.useRef(false);
@@ -84,19 +85,44 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
     const priceValue = watch('price');
     const stockValue = watch('stock');
 
-    // reinicializa estados ao fechar ou reabrir o modal
+    // reinicializa estados ao fechar ou reabrir o modal, e preenche campos em modo de edicao
     React.useEffect(() => {
         setFormError(null);
         isSubmittingRef.current = false;
-        if (!isOpen) {
-            reset();
+        if (editingBook) {
+            const formattedPrice = maskMoney(
+                String(Math.round((Number(editingBook.price) || 0) * 100))
+            );
+            reset({
+                title: editingBook.title || '',
+                authors: editingBook.authors || '',
+                isbn: editingBook.isbn || '',
+                publisher: editingBook.publisher || '',
+                description: editingBook.description || '',
+                price: formattedPrice,
+                stock: String(editingBook.stock ?? 0)
+            });
+            setShowExtraDetails(Boolean(editingBook.isbn || editingBook.publisher || editingBook.description));
+            setSelectedGoogleBook(null);
+            setSearchResults([]);
+            setHasSearched(false);
+        } else if (!isOpen) {
+            reset({
+                title: '',
+                authors: '',
+                isbn: '',
+                publisher: '',
+                description: '',
+                price: '',
+                stock: ''
+            });
             setSearchQuery('');
             setSearchResults([]);
             setHasSearched(false);
             setSelectedGoogleBook(null);
             setShowExtraDetails(false);
         }
-    }, [isOpen, reset]);
+    }, [isOpen, editingBook, reset]);
 
     // consulta a api do google books (com fallback transparente para open library se necessario)
     async function handleSearchGoogleBooks(e?: React.FormEvent) {
@@ -175,7 +201,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                 description: data.description?.trim() || '',
                 price: numericPrice,
                 stock: isNaN(numericStock) ? 0 : numericStock
-            });
+            }, editingBook?.id);
             if (success) {
                 reset();
                 onClose();
@@ -193,8 +219,12 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title="Novo Livro no Catálogo"
-            description="Consulte na base do Google Books para preencher automaticamente ou cadastre manualmente."
+            title={editingBook ? 'Editar Livro' : 'Novo Livro no Catálogo'}
+            description={
+                editingBook
+                    ? 'Atualize as informações, preços e quantidade em estoque deste título.'
+                    : 'Consulte na base do Google Books para preencher automaticamente ou cadastre manualmente.'
+            }
             maxWidth="max-w-lg"
         >
             <div className="space-y-4">
@@ -511,8 +541,10 @@ export function BookFormModal({ isOpen, onClose, onSubmit }: BookFormModalProps)
                             {submitting ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    <span>Cadastrando...</span>
+                                    <span>Salvando...</span>
                                 </>
+                            ) : editingBook ? (
+                                'Salvar Alterações'
                             ) : (
                                 'Cadastrar Livro'
                             )}

@@ -38,7 +38,7 @@ export function SalesPage() {
     ]);
     const pageSize = 10;
 
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
+    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice();
     const location = useLocation();
 
     // abertura fluida do modal quando navegado a partir do botao 'Nova Venda' da dashboard
@@ -120,9 +120,11 @@ export function SalesPage() {
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* aviso suave com fade in e fade out exclusivo desta tela */}
             <ScreenNotice
+                notices={notices}
                 notice={notice}
                 isExiting={isExiting}
                 onClose={closeNotice}
+                onClearAll={clearAll}
             />
 
             <RecordsTableLayout

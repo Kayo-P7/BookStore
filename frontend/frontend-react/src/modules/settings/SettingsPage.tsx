@@ -13,7 +13,7 @@ interface ServicePing {
 
 export function SettingsPage() {
     const [testing, setTesting] = React.useState(false);
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
+    const { notice, isExiting, showNotice } = useScreenNotice();
     const [pings, setPings] = React.useState<Record<string, ServicePing>>({
         catalog: { status: 'idle', time: null },
         customer: { status: 'idle', time: null },

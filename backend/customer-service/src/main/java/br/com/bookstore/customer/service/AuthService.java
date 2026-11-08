@@ -98,7 +98,8 @@ public class AuthService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole()
+                user.getRole(),
+                user.isMustChangePassword()
         );
     }
 
@@ -130,7 +131,47 @@ public class AuthService {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole()
+                user.getRole(),
+                user.isMustChangePassword()
+        );
+    }
+
+    // altera a senha do operador e remove a exigencia de troca no primeiro acesso
+    @Transactional
+    public AuthResponse changePassword(String emailOrNull, br.com.bookstore.customer.dto.ChangePasswordRequest request) {
+        String email = emailOrNull != null && !emailOrNull.isBlank() ? emailOrNull : request.email();
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Identificacao do usuario ausente");
+        }
+
+        User user = userRepository.findByEmail(email.trim().toLowerCase())
+                .orElseThrow(() -> new IllegalArgumentException("Usuario nao encontrado"));
+
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Senha atual informada esta incorreta");
+        }
+
+        if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("A nova senha nao pode ser igual a senha anterior");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
+        user.setMustChangePassword(false);
+        userRepository.save(user);
+
+        SystemUserDetails userDetails = new SystemUserDetails(user);
+        Map<String, Object> claims = buildClaims(user);
+        String accessToken = jwtService.generateToken(user.getEmail(), userDetails.getAuthorities(), claims);
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return new AuthResponse(
+                accessToken,
+                refreshToken,
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                false
         );
     }
 

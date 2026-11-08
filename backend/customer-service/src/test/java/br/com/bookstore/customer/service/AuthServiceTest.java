@@ -121,4 +121,32 @@ class AuthServiceTest {
         assertEquals("victor@bookstore.com", response.email());
         assertEquals(SecurityRoles.ROLE_SELLER, response.role());
     }
+
+    @Test
+    @DisplayName("deve alterar senha de operador com sucesso no primeiro acesso")
+    void shouldChangePasswordSuccessfully() {
+        sampleUser.setMustChangePassword(true);
+        var request = new br.com.bookstore.customer.dto.ChangePasswordRequest(
+                "victor@bookstore.com",
+                "senha123",
+                "NovaSenha@2026"
+        );
+
+        when(userRepository.findByEmail("victor@bookstore.com")).thenReturn(java.util.Optional.of(sampleUser));
+        when(passwordEncoder.matches("senha123", "encoded_secret")).thenReturn(true);
+        when(passwordEncoder.matches("NovaSenha@2026", "encoded_secret")).thenReturn(false);
+        when(passwordEncoder.encode("NovaSenha@2026")).thenReturn("new_encoded_secret");
+        when(jwtService.generateToken(eq(sampleUser.getEmail()), anyCollection(), anyMap()))
+                .thenReturn("new-access-token");
+        when(jwtService.generateRefreshToken(sampleUser.getEmail()))
+                .thenReturn("new-refresh-token");
+
+        AuthResponse response = authService.changePassword(null, request);
+
+        assertNotNull(response);
+        assertEquals("new-access-token", response.accessToken());
+        assertFalse(response.mustChangePassword());
+        assertFalse(sampleUser.isMustChangePassword());
+        verify(userRepository).save(sampleUser);
+    }
 }

@@ -46,6 +46,10 @@ public class UserService {
         User user = mapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.password()));
         user.setRole(normalizeRole(request.role()));
+        if (request.active() != null) {
+            user.setActive(request.active());
+        }
+        user.setMustChangePassword(true);
 
         return mapper.toResponse(repo.save(user));
     }

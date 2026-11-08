@@ -1,10 +1,12 @@
 package br.com.bookstore.customer.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 // dto de entrada para cadastro de operadores do sistema
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record UserRequest(
     @NotBlank(message = "O nome é obrigatório")
     String name,
@@ -18,6 +20,11 @@ public record UserRequest(
     String password,
 
     @NotBlank(message = "O papel é obrigatório (ADMIN ou SELLER)")
-    String role
+    String role,
+
+    Boolean active
 ) {
+    public UserRequest(String name, String email, String password, String role) {
+        this(name, email, password, role, true);
+    }
 }

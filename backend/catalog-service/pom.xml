@@ -15,6 +15,14 @@
   <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-graphql</artifactId></dependency>
   <dependency><groupId>org.mapstruct</groupId><artifactId>mapstruct</artifactId></dependency>
   <dependency>
+   <groupId>org.flywaydb</groupId>
+   <artifactId>flyway-core</artifactId>
+  </dependency>
+  <dependency>
+   <groupId>org.flywaydb</groupId>
+   <artifactId>flyway-database-postgresql</artifactId>
+  </dependency>
+  <dependency>
    <groupId>br.com.bookstore</groupId>
    <artifactId>security-common</artifactId>
   </dependency>

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, UserCog } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from './ui/button';
 
@@ -94,6 +94,19 @@ export function UserProfileDropdown() {
                     </div>
 
                     <div className="py-1">
+                        {isAdmin && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsOpen(false);
+                                    navigate('/users');
+                                }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-[#171717] rounded-lg hover:bg-[#f5f5f5] transition-colors text-left cursor-pointer"
+                            >
+                                <UserCog className="w-4 h-4 text-[#737373]" />
+                                <span>Gestão de Usuários</span>
+                            </button>
+                        )}
                         <button
                             type="button"
                             onClick={() => {

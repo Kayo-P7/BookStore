@@ -9,8 +9,9 @@ import { CustomersPage } from '../modules/customers/CustomersPage';
 import { SalesPage } from '../modules/sales/SalesPage';
 import { ServicesPage } from '../modules/services/ServicesPage';
 import { SettingsPage } from '../modules/settings/SettingsPage';
+import { UsersPage } from '../modules/users/UsersPage';
 import { LoginPage } from '../modules/auth/LoginPage';
-import { ForgotPasswordPage } from '../modules/auth/ForgotPasswordPage';
+import { PrimeiroAcessoPage } from '../modules/auth/PrimeiroAcessoPage';
 import { NotFoundPage } from '../modules/not-found/NotFoundPage';
 
 export function AppRoutes() {
@@ -23,9 +24,17 @@ export function AppRoutes() {
                 </PublicRoute>
             }>
                 <Route path="login" element={<LoginPage />} />
-                <Route path="forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="forgot-password" element={<Navigate to="/auth/login" replace />} />
                 <Route index element={<Navigate to="/auth/login" replace />} />
             </Route>
+
+            {/* rota de primeiro acesso para troca obrigatoria de senha */}
+            <Route path="/primeiro-acesso" element={
+                <ProtectedRoute>
+                    <PrimeiroAcessoPage />
+                </ProtectedRoute>
+            } />
+            <Route path="/auth/primeiro-acesso" element={<Navigate to="/primeiro-acesso" replace />} />
 
             {/* layout autenticado principal protegido por sessao */}
             <Route path="/" element={
@@ -41,6 +50,11 @@ export function AppRoutes() {
                 <Route path="sales" element={<SalesPage />} />
                 <Route path="logistics" element={<ServicesPage />} />
                 <Route path="services" element={<Navigate to="/logistics" replace />} />
+                <Route path="users" element={
+                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                        <UsersPage />
+                    </ProtectedRoute>
+                } />
                 <Route path="settings" element={<SettingsPage />} />
             </Route>
 

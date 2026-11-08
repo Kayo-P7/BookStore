@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -45,7 +45,11 @@ export function LoginPage() {
         setSubmitting(true);
         setAuthError(null);
         try {
-            await login({ email: data.email, password: data.password });
+            const authUser = await login({ email: data.email, password: data.password });
+            if (authUser?.mustChangePassword) {
+                navigate('/primeiro-acesso', { replace: true });
+                return;
+            }
             const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
             navigate(from, { replace: true });
         } catch (err: unknown) {
@@ -63,54 +67,48 @@ export function LoginPage() {
     }
 
     return (
-        <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form noValidate onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {authError && (
-                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-[#E11D48] text-xs font-medium flex items-start gap-2 animate-in fade-in duration-200">
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-[#E11D48] text-xs sm:text-sm font-medium flex items-start gap-2.5 animate-in fade-in duration-200">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>{authError}</span>
                 </div>
             )}
 
-            <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-primary" />
+            <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-semibold text-[#171717] flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-emerald-600" />
                     <span>E-mail Corporativo</span>
                 </label>
                 <Input
                     type="email"
                     placeholder="seu.email@empresa.com"
                     error={Boolean(errors.email)}
+                    className="h-12 px-4 text-sm sm:text-base rounded-xl"
                     {...register('email')}
                 />
                 {errors.email && (
-                    <p className="text-[11px] text-[#E11D48] font-medium flex items-center gap-1.5 mt-1 animate-in fade-in duration-150">
+                    <p className="text-xs text-[#E11D48] font-medium flex items-center gap-1.5 mt-1 animate-in fade-in duration-150">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                         {errors.email.message}
                     </p>
                 )}
             </div>
 
-            <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                        <Lock className="w-3.5 h-3.5 text-primary" />
-                        <span>Senha de Acesso</span>
-                    </label>
-                    <Link
-                        to="/auth/forgot-password"
-                        className="text-[11px] font-medium text-primary hover:underline"
-                    >
-                        Esqueceu?
-                    </Link>
-                </div>
+            <div className="space-y-2">
+                <label className="text-xs sm:text-sm font-semibold text-[#171717] flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-emerald-600" />
+                    <span>Senha de Acesso</span>
+                </label>
                 <Input
                     type="password"
                     placeholder="Sua senha de acesso"
                     error={Boolean(errors.password)}
+                    className="h-12 px-4 text-sm sm:text-base rounded-xl"
                     {...register('password')}
                 />
                 {errors.password && (
-                    <p className="text-[11px] text-[#E11D48] font-medium flex items-center gap-1.5 mt-1 animate-in fade-in duration-150">
+                    <p className="text-xs text-[#E11D48] font-medium flex items-center gap-1.5 mt-1 animate-in fade-in duration-150">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                         {errors.password.message}
                     </p>
@@ -123,14 +121,14 @@ export function LoginPage() {
                 size="lg"
                 hoverLift
                 disabled={submitting}
-                className="w-full mt-2 font-semibold shadow-2xs hover:shadow-xs"
+                className="w-full h-12 mt-3 text-sm sm:text-base font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md transition-all gap-2"
             >
                 <LogIn className="w-4 h-4" />
                 {submitting ? 'Autenticando...' : 'Acessar Painel'}
             </Button>
 
             <div className="text-center pt-2">
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-[#737373]">
                     Acesso restrito a operadores autenticados da livraria.
                 </span>
             </div>
