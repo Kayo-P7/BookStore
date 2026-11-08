@@ -72,3 +72,32 @@ export interface UserProfile {
     role: string;
     initials: string;
 }
+
+export type UserRole = 'ADMIN' | 'SELLER';
+
+export interface SystemUser {
+    id: number;
+    name: string;
+    email: string;
+    role: UserRole;
+    active: boolean;
+    createdAt?: string;
+    updatedAt?: string;
+}
+
+export interface UserFormData {
+    name: string;
+    email: string;
+    password?: string;
+    role: UserRole;
+}
+
+export interface AuthResponse {
+    accessToken: string;
+    refreshToken: string;
+    tokenType: string;
+    userId: number;
+    name: string;
+    email: string;
+    role: UserRole;
+}

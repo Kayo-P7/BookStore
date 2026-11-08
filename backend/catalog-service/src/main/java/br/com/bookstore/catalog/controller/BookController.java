@@ -4,6 +4,8 @@ import br.com.bookstore.catalog.dto.BookRequest;
 import br.com.bookstore.catalog.dto.BookResponse;
 import br.com.bookstore.catalog.service.BookService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLEncoder;
@@ -39,26 +41,32 @@ public class BookController {
         return service.search(title);
     }
 
-    // cria novo registro de livro
+    // cria novo registro de livro (exclusivo para administrador)
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasRole('ADMIN')")
     public BookResponse create(@Valid @RequestBody BookRequest request) {
         return service.save(request);
     }
 
-    // altera dados de um livro existente
+    // altera dados de um livro existente (exclusivo para administrador)
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public BookResponse update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         return service.update(id, request);
     }
 
-    // exclui registro de livro por id
+    // exclui registro de livro por id (exclusivo para administrador)
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
 
-    // reduz a quantidade em estoque de um livro
+    // reduz a quantidade em estoque de um livro (vendedor e administrador)
     @PostMapping("/{id}/decrease-stock")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
     public BookResponse decrease(@PathVariable Long id, @RequestParam int quantity) {
         return service.decreaseStock(id, quantity);
     }

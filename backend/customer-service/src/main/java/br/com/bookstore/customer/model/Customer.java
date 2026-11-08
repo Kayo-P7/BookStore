@@ -14,6 +14,7 @@ public class Customer {
     private String name;
     @Email
     @NotBlank
+    @Column(unique = true)
     private String email;
     private String phone;
     private String cep;

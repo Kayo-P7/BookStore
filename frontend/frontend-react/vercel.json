@@ -1,0 +1,56 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/catalog/:match*",
+      "destination": "https://RENDER_CATALOG_URL/api/catalog/:match*"
+    },
+    {
+      "source": "/api/integrations/:match*",
+      "destination": "https://RENDER_CATALOG_URL/api/integrations/:match*"
+    },
+    {
+      "source": "/graphql",
+      "destination": "https://RENDER_CATALOG_URL/graphql"
+    },
+    {
+      "source": "/api/customers/:match*",
+      "destination": "https://RENDER_CUSTOMER_URL/api/customers/:match*"
+    },
+    {
+      "source": "/api/customers",
+      "destination": "https://RENDER_CUSTOMER_URL/api/customers"
+    },
+    {
+      "source": "/api/auth/:match*",
+      "destination": "https://RENDER_CUSTOMER_URL/api/auth/:match*"
+    },
+    {
+      "source": "/api/auth",
+      "destination": "https://RENDER_CUSTOMER_URL/api/auth"
+    },
+    {
+      "source": "/api/users/:match*",
+      "destination": "https://RENDER_CUSTOMER_URL/api/users/:match*"
+    },
+    {
+      "source": "/api/users",
+      "destination": "https://RENDER_CUSTOMER_URL/api/users"
+    },
+    {
+      "source": "/api/sales/:match*",
+      "destination": "https://RENDER_SALES_URL/api/sales/:match*"
+    },
+    {
+      "source": "/api/sales",
+      "destination": "https://RENDER_SALES_URL/api/sales"
+    },
+    {
+      "source": "/api/:match*",
+      "destination": "https://RENDER_GATEWAY_URL/api/:match*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

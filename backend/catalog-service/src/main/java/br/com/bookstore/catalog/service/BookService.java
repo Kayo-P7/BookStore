@@ -37,17 +37,27 @@ public class BookService {
         return mapper.toResponseList(repo.findByTitleContainingIgnoreCase(title));
     }
 
-    // cadastra novo livro a partir dos dados recebidos
+    // cadastra novo livro a partir dos dados recebidos validando unicidade de isbn
     @Transactional
     public BookResponse save(BookRequest request) {
+        if (request.isbn() != null && !request.isbn().isBlank() && repo.existsByIsbn(request.isbn())) {
+            throw new IllegalArgumentException("ISBN ja cadastrado para outro livro: " + request.isbn());
+        }
         Book book = mapper.toEntity(request);
         return mapper.toResponse(repo.save(book));
     }
 
-    // atualiza livro existente preservando seu identificador
+    // atualiza livro existente preservando seu identificador e validando isbn
     @Transactional
     public BookResponse update(Long id, BookRequest request) {
         Book book = findEntityById(id);
+
+        if (request.isbn() != null && !request.isbn().isBlank()
+                && !request.isbn().equalsIgnoreCase(book.getIsbn())
+                && repo.existsByIsbn(request.isbn())) {
+            throw new IllegalArgumentException("ISBN ja cadastrado para outro livro: " + request.isbn());
+        }
+
         mapper.updateEntityFromRequest(request, book);
         return mapper.toResponse(repo.save(book));
     }
@@ -66,7 +76,7 @@ public class BookService {
         }
         Book book = findEntityById(id);
         if (book.getStock() == null || book.getStock() < quantity) {
-            throw new IllegalStateException("Estoque insuficiente");
+            throw new IllegalStateException("Estoque insuficiente para o livro: " + book.getTitle());
         }
         book.setStock(book.getStock() - quantity);
         return mapper.toResponse(repo.save(book));
@@ -75,6 +85,6 @@ public class BookService {
     // busca a entidade no banco de dados lancando excecao caso nao exista
     public Book findEntityById(Long id) {
         return repo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Livro não encontrado: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Livro não encontrado com o id: " + id));
     }
 }

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from '../layouts/AppLayout';
 import { AuthLayout } from '../layouts/AuthLayout';
+import { ProtectedRoute, PublicRoute } from './guards/ProtectedRoute';
 import { DashboardPage } from '../modules/dashboard/DashboardPage';
 import { BooksPage } from '../modules/books/BooksPage';
 import { CustomersPage } from '../modules/customers/CustomersPage';
@@ -15,15 +16,23 @@ import { NotFoundPage } from '../modules/not-found/NotFoundPage';
 export function AppRoutes() {
     return (
         <Routes>
-            {/* layout de autenticacao */}
-            <Route path="/auth" element={<AuthLayout />}>
+            {/* layout de autenticacao com redirecionamento para dashboard se ja autenticado */}
+            <Route path="/auth" element={
+                <PublicRoute>
+                    <AuthLayout />
+                </PublicRoute>
+            }>
                 <Route path="login" element={<LoginPage />} />
                 <Route path="forgot-password" element={<ForgotPasswordPage />} />
                 <Route index element={<Navigate to="/auth/login" replace />} />
             </Route>
 
-            {/* layout autenticado principal */}
-            <Route path="/" element={<AppLayout />}>
+            {/* layout autenticado principal protegido por sessao */}
+            <Route path="/" element={
+                <ProtectedRoute>
+                    <AppLayout />
+                </ProtectedRoute>
+            }>
                 <Route index element={<Navigate to="/dashboard" replace />} />
                 <Route path="dashboard" element={<DashboardPage />} />
                 <Route path="catalog" element={<BooksPage />} />
