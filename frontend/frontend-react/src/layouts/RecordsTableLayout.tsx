@@ -30,6 +30,7 @@ export interface RecordsTableLayoutProps {
     isLoading?: boolean;
     isEmpty?: boolean;
     emptyMessage?: string;
+    extraFilters?: React.ReactNode;
     children: React.ReactNode;
 }
 
@@ -41,8 +42,8 @@ export function RecordsTableLayout({
     searchTerm,
     onSearchChange,
     searchPlaceholder = 'Filtrar registros...',
-    columns,
-    visibleColumns,
+    columns = [],
+    visibleColumns = [],
     onToggleColumn,
     totalRecords,
     currentPage,
@@ -51,6 +52,7 @@ export function RecordsTableLayout({
     isLoading = false,
     isEmpty = false,
     emptyMessage = 'Nenhum registro encontrado.',
+    extraFilters,
     children
 }: RecordsTableLayoutProps) {
     const [columnDropdownOpen, setColumnDropdownOpen] = React.useState(false);
@@ -112,6 +114,7 @@ export function RecordsTableLayout({
                 </div>
 
                 <div className="flex items-center gap-2">
+                    {extraFilters}
                     {/* dropdown com checkboxes para alternar visibilidade de colunas */}
                     <div ref={dropdownRef} className="relative">
                         <Button

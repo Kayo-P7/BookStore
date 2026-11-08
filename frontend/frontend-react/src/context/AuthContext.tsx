@@ -78,8 +78,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, [user?.role]);
 
     const isAuthenticated = Boolean(token && user);
-    const isAdmin = user?.role === 'ADMIN';
-    const isSeller = user?.role === 'SELLER';
+    const userRole = user?.role ? user.role.replace('ROLE_', '').toUpperCase() : '';
+    const isAdmin = userRole === 'ADMIN';
+    const isSeller = userRole === 'SELLER';
 
     const value = React.useMemo<AuthContextType>(() => ({
         user,

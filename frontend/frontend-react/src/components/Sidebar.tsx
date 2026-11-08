@@ -7,8 +7,10 @@ import {
     ShoppingBag,
     MapPin,
     Settings,
+    UserCog,
     X
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { cn } from './ui/button';
 
 interface SidebarProps {
@@ -23,6 +25,8 @@ export function Sidebar({
     mobileOpen,
     onCloseMobile
 }: SidebarProps) {
+    const { isAdmin } = useAuth();
+
     const navItems = [
         {
             to: '/dashboard',
@@ -54,6 +58,16 @@ export function Sidebar({
             description: 'Localização e consulta de CEP',
             icon: MapPin
         },
+        ...(isAdmin
+            ? [
+                  {
+                      to: '/users',
+                      label: 'Usuários',
+                      description: 'Operadores e controle de acesso',
+                      icon: UserCog
+                  }
+              ]
+            : []),
         {
             to: '/settings',
             label: 'Configurações',

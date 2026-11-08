@@ -17,8 +17,12 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
         return <Navigate to="/auth/login" state={{ from: location }} replace />;
     }
 
-    if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-        return <Navigate to="/dashboard" replace />;
+    if (allowedRoles && user) {
+        const normalizedUserRole = user.role.replace('ROLE_', '').toUpperCase();
+        const normalizedAllowed = allowedRoles.map(r => r.replace('ROLE_', '').toUpperCase());
+        if (!normalizedAllowed.includes(normalizedUserRole)) {
+            return <Navigate to="/dashboard" replace />;
+        }
     }
 
     return children ? <>{children}</> : <Outlet />;
