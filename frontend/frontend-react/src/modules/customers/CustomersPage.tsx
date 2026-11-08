@@ -41,7 +41,7 @@ export function CustomersPage() {
     ]);
     const pageSize = 8;
 
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
+    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice(4000);
 
     async function loadCustomers() {
         setLoading(true);
@@ -118,9 +118,11 @@ export function CustomersPage() {
         <div className="space-y-6 animate-in fade-in duration-300">
             {/* aviso suave com fade in e fade out exclusivo desta tela */}
             <ScreenNotice
+                notices={notices}
                 notice={notice}
                 isExiting={isExiting}
                 onClose={closeNotice}
+                onClearAll={clearAll}
             />
 
             <RecordsTableLayout

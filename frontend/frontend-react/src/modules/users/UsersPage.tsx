@@ -40,7 +40,7 @@ export function UsersPage() {
     ]);
     const pageSize = 8;
 
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
+    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice(4000);
 
     const loadUsers = React.useCallback(async () => {
         setLoading(true);
@@ -189,7 +189,13 @@ export function UsersPage() {
 
     return (
         <div className="space-y-4">
-            <ScreenNotice notice={notice} isExiting={isExiting} onClose={closeNotice} />
+            <ScreenNotice
+                notices={notices}
+                notice={notice}
+                isExiting={isExiting}
+                onClose={closeNotice}
+                onClearAll={clearAll}
+            />
 
             {/* cards de estatisticas dos operadores */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

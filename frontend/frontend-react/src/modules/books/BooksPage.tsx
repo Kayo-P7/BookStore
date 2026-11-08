@@ -39,7 +39,7 @@ export function BooksPage() {
         'status'
     ]);
 
-    const { notice, isExiting, showNotice, closeNotice } = useScreenNotice(3000);
+    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice(4000);
 
     async function loadBooks() {
         setLoading(true);
@@ -97,9 +97,11 @@ export function BooksPage() {
         <div className="space-y-4">
             {/* aviso de feedback com fade suave restrito a tela de livros */}
             <ScreenNotice
+                notices={notices}
                 notice={notice}
                 isExiting={isExiting}
                 onClose={closeNotice}
+                onClearAll={clearAll}
             />
 
             <RecordsTableLayout
