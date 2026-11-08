@@ -21,6 +21,22 @@
       "destination": "https://RENDER_CUSTOMER_URL/api/customers"
     },
     {
+      "source": "/api/auth/:match*",
+      "destination": "https://RENDER_CUSTOMER_URL/api/auth/:match*"
+    },
+    {
+      "source": "/api/auth",
+      "destination": "https://RENDER_CUSTOMER_URL/api/auth"
+    },
+    {
+      "source": "/api/users/:match*",
+      "destination": "https://RENDER_CUSTOMER_URL/api/users/:match*"
+    },
+    {
+      "source": "/api/users",
+      "destination": "https://RENDER_CUSTOMER_URL/api/users"
+    },
+    {
       "source": "/api/sales/:match*",
       "destination": "https://RENDER_SALES_URL/api/sales/:match*"
     },

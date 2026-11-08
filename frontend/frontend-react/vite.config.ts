@@ -52,6 +52,14 @@ export default defineConfig(({ mode }) => {
                         target: customerUrl,
                         changeOrigin: true
                     },
+                    '/api/auth': {
+                        target: customerUrl,
+                        changeOrigin: true
+                    },
+                    '/api/users': {
+                        target: customerUrl,
+                        changeOrigin: true
+                    },
                     '/api/sales': {
                         target: salesUrl,
                         changeOrigin: true
