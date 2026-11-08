@@ -23,6 +23,7 @@ public class CustomerSecurityConfig {
         return template.build(http, auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/error").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/customers/cep/**").permitAll()
                 .requestMatchers("/api/users", "/api/users/**").hasRole(SecurityRoles.ADMIN)
                 .requestMatchers(HttpMethod.POST, "/api/customers", "/api/customers/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)

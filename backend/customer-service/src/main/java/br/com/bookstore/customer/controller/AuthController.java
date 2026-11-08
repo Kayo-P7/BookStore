@@ -1,6 +1,7 @@
 package br.com.bookstore.customer.controller;
 
 import br.com.bookstore.customer.dto.AuthResponse;
+import br.com.bookstore.customer.dto.ChangePasswordRequest;
 import br.com.bookstore.customer.dto.LoginRequest;
 import br.com.bookstore.customer.dto.RefreshTokenRequest;
 import br.com.bookstore.customer.dto.RegisterRequest;
@@ -8,6 +9,8 @@ import br.com.bookstore.customer.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 // controlador rest para exposicao de rotas de autenticacao e registro
 @RestController
@@ -37,5 +40,15 @@ public class AuthController {
     @PostMapping("/refresh")
     public AuthResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
         return authService.refresh(request);
+    }
+
+    // altera a senha do operador na tela de primeiro acesso ou definicao de credencial
+    @PostMapping("/change-password")
+    public AuthResponse changePassword(
+            Principal principal,
+            @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        String email = principal != null ? principal.getName() : null;
+        return authService.changePassword(email, request);
     }
 }
