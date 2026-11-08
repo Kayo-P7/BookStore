@@ -12,7 +12,7 @@ export interface NoticeItem {
 
 export type NoticeState = Omit<NoticeItem, 'id'>;
 
-export function useScreenNotice(autoCloseDuration = 4000) {
+export function useScreenNotice(autoCloseDuration = 2600) {
     const [notices, setNotices] = React.useState<NoticeItem[]>([]);
     const timersRef = React.useRef<Map<string, NodeJS.Timeout>>(new Map());
 
@@ -25,7 +25,7 @@ export function useScreenNotice(autoCloseDuration = 4000) {
             });
             setTimeout(() => {
                 setNotices(prev => prev.slice(0, -1));
-            }, 300);
+            }, 280);
             return;
         }
 
@@ -38,7 +38,7 @@ export function useScreenNotice(autoCloseDuration = 4000) {
         setNotices(prev => prev.map(n => (n.id === id ? { ...n, isExiting: true } : n)));
         setTimeout(() => {
             setNotices(prev => prev.filter(n => n.id !== id));
-        }, 300);
+        }, 280);
     }, []);
 
     const clearAll = React.useCallback(() => {
@@ -47,7 +47,7 @@ export function useScreenNotice(autoCloseDuration = 4000) {
         setNotices(prev => prev.map(n => ({ ...n, isExiting: true })));
         setTimeout(() => {
             setNotices([]);
-        }, 250);
+        }, 280);
     }, []);
 
     const showNotice = React.useCallback(
@@ -199,46 +199,50 @@ export function ScreenNotice({
                             style={{
                                 transform: `translateY(${translateY}px) scale(${scale})`,
                                 zIndex,
-                                opacity,
+                                opacity: isHovered ? (item.isExiting ? 0 : 1) : opacity,
                                 transformOrigin: 'bottom center',
-                                transition: 'all 320ms cubic-bezier(0.16, 1, 0.3, 1)'
+                                transition: 'transform 360ms cubic-bezier(0.19, 1.28, 0.22, 1), opacity 240ms ease'
                             }}
-                            className={cn(
-                                'absolute bottom-0 right-0 w-full pointer-events-auto rounded-xl px-4 py-3 flex items-center gap-3',
-                                'bg-white text-[#171717]',
-                                'border border-[#e5e5e5] shadow-xl shadow-black/8',
-                                item.isExiting && 'pointer-events-none',
-                                className
-                            )}
+                            className="absolute bottom-0 right-0 w-full pointer-events-auto"
                         >
-                            <div className={cn('w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-2xs', iconContainers[item.type])}>
-                                {icons[item.type]}
-                            </div>
-
-                            <span className="text-xs sm:text-sm font-medium text-[#171717] tracking-tight truncate flex-1">
-                                {item.message}
-                            </span>
-
-                            {/* indicador de notificacoes empilhadas no card frontal */}
-                            {isTop && isStacked && !isHovered && (
-                                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 text-zinc-600 border border-zinc-200 shrink-0">
-                                    <Layers className="w-2.5 h-2.5" />
-                                    +{count - 1}
-                                </span>
-                            )}
-
-                            {/* botao fechar individual */}
-                            <button
-                                type="button"
-                                onClick={e => {
-                                    e.stopPropagation();
-                                    onClose?.(item.id);
-                                }}
-                                className="text-[#737373] hover:text-[#171717] p-1 rounded-md hover:bg-[#f5f5f5] transition-colors cursor-pointer shrink-0 ml-1"
-                                title="Fechar aviso"
+                            <div
+                                className={cn(
+                                    'w-full rounded-xl px-4 py-3 flex items-center gap-3',
+                                    'bg-white/95 backdrop-blur-md text-[#171717]',
+                                    'border border-[#e5e5e5] shadow-xl shadow-black/8',
+                                    item.isExiting ? 'notice-liquid-exit pointer-events-none' : 'notice-liquid-enter',
+                                    className
+                                )}
                             >
-                                <X className="w-3.5 h-3.5" />
-                            </button>
+                                <div className={cn('w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-2xs', iconContainers[item.type])}>
+                                    {icons[item.type]}
+                                </div>
+
+                                <span className="text-xs sm:text-sm font-medium text-[#171717] tracking-tight truncate flex-1">
+                                    {item.message}
+                                </span>
+
+                                {/* indicador de notificacoes empilhadas no card frontal */}
+                                {isTop && isStacked && !isHovered && (
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 text-zinc-600 border border-zinc-200 shrink-0">
+                                        <Layers className="w-2.5 h-2.5" />
+                                        +{count - 1}
+                                    </span>
+                                )}
+
+                                {/* botao fechar individual */}
+                                <button
+                                    type="button"
+                                    onClick={e => {
+                                        e.stopPropagation();
+                                        onClose?.(item.id);
+                                    }}
+                                    className="text-[#737373] hover:text-[#171717] p-1 rounded-md hover:bg-[#f5f5f5] transition-colors cursor-pointer shrink-0 ml-1"
+                                    title="Fechar aviso"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
                         </div>
                     );
                 })}
