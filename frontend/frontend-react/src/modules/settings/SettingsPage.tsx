@@ -3,7 +3,7 @@ import { Activity, Server, Database, Globe, Check, AlertCircle } from 'lucide-re
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
-import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
+import { useScreenNotice } from '../../components/ui/screen-notice';
 import { cn } from '../../components/ui/button';
 
 interface ServicePing {
@@ -13,7 +13,7 @@ interface ServicePing {
 
 export function SettingsPage() {
     const [testing, setTesting] = React.useState(false);
-    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice();
+    const { notice, isExiting, showNotice } = useScreenNotice();
     const [pings, setPings] = React.useState<Record<string, ServicePing>>({
         catalog: { status: 'idle', time: null },
         customer: { status: 'idle', time: null },
@@ -282,14 +282,6 @@ export function SettingsPage() {
                     </div>
                 </CardContent>
             </Card>
-
-            <ScreenNotice
-                notice={notice}
-                notices={notices}
-                isExiting={isExiting}
-                onClose={closeNotice}
-                onClearAll={clearAll}
-            />
         </div>
     );
 }
