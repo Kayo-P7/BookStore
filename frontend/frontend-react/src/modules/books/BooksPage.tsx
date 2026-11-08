@@ -46,7 +46,7 @@ export function BooksPage() {
         'actions'
     ]);
 
-    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice(4000);
+    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice();
 
     const loadBooks = React.useCallback(async () => {
         setLoading(true);

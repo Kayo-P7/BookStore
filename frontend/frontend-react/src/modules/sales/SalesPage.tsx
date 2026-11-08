@@ -38,7 +38,7 @@ export function SalesPage() {
     ]);
     const pageSize = 10;
 
-    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice(4000);
+    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice();
     const location = useLocation();
 
     // abertura fluida do modal quando navegado a partir do botao 'Nova Venda' da dashboard

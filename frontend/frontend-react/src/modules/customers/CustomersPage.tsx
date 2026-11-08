@@ -41,7 +41,7 @@ export function CustomersPage() {
     ]);
     const pageSize = 8;
 
-    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice(4000);
+    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice();
 
     async function loadCustomers() {
         setLoading(true);

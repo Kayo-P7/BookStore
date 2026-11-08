@@ -40,7 +40,7 @@ export function UsersPage() {
     ]);
     const pageSize = 8;
 
-    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice(4000);
+    const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice();
 
     const loadUsers = React.useCallback(async () => {
         setLoading(true);
