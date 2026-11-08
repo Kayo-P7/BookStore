@@ -67,7 +67,7 @@ export function ForgotPasswordPage() {
                 </label>
                 <Input
                     type="email"
-                    placeholder="usuario@bookstore.internal"
+                    placeholder="usuario@bookstore.com"
                     error={Boolean(errors.email)}
                     {...register('email')}
                 />
