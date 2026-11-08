@@ -16,61 +16,55 @@ Sistema distribuído baseado em microsserviços para gerenciamento acadêmico de
 
 ```mermaid
 flowchart TD
-    subgraph Clients ["Camada de Apresentacao / Frontends"]
-        ReactApp["Frontend React (Vite)<br/>:5173 local / :5175 docker"]
-        VueApp["Frontend Vue (Vite)<br/>:5174"]
+    subgraph Clients ["Camada de Apresentacao - Frontends"]
+        ReactApp["Frontend React (Vite)<br/>Portas 5173 / 5175"]
+        VueApp["Frontend Vue (Vite)<br/>Porta 5174"]
     end
 
     subgraph EntryPoint ["Gateway e Proxy Reverso"]
-        Gateway["Nginx API Gateway / Vercel Proxy<br/>:8080"]
+        Gateway["Nginx API Gateway / Vercel Proxy<br/>Porta 8080"]
     end
 
-    subgraph Services ["Microsservicos Backend (Spring Boot 3.4 / Java 21)"]
-        Catalog["Catalog Service<br/>:8081<br/>REST & GraphQL (/graphql)"]
-        Customer["Customer Service<br/>:8082<br/>Gestao de Clientes"]
-        Sales["Sales Service<br/>:8083<br/>Orquestracao de Vendas"]
-        Security["security-common<br/>Modulo compartilhado de seguranca"]
+    subgraph Services ["Microsservicos Backend - Spring Boot 3.4 / Java 21"]
+        Catalog["Catalog Service<br/>Porta 8081<br/>REST e GraphQL"]
+        Customer["Customer Service<br/>Porta 8082<br/>Gestao de Clientes"]
+        Sales["Sales Service<br/>Porta 8083<br/>Orquestracao de Vendas"]
+        Security["security-common<br/>Modulo Compartilhado de Seguranca"]
     end
 
     subgraph DB ["Camada de Persistencia"]
-        Postgres[("PostgreSQL 16 / Neon<br/>:5432 (bookstore)")]
+        Postgres[("PostgreSQL 16 / Neon<br/>Porta 5432")]
     end
 
-    subgraph ExternalAPIs ["Integracoes e APIs Externas"]
+    subgraph ExternalAPIs ["Integracoes Externas"]
         GoogleBooks["Google Books API"]
         ViaCEP["ViaCEP"]
         QRServer["QR Server API"]
         NagerDate["Nager.Date"]
     end
 
-    %% Requisicoes de clientes
-    ReactApp -->|Requisicoes /api/* e /graphql| Gateway
-    VueApp -->|Requisicoes /api/*| Gateway
-    VueApp -.->|Consulta Feriados| NagerDate
+    ReactApp -->|"Rotas /api e /graphql"| Gateway
+    VueApp -->|"Rotas /api"| Gateway
+    VueApp -.->|"Consulta feriados"| NagerDate
 
-    %% Roteamento do Gateway
-    Gateway -->|/api/catalog/* e /graphql| Catalog
-    Gateway -->|/api/customers/*| Customer
-    Gateway -->|/api/sales/*| Sales
+    Gateway -->|"Catalogo e GraphQL"| Catalog
+    Gateway -->|"Clientes"| Customer
+    Gateway -->|"Vendas"| Sales
 
-    %% Orquestracao interna de Vendas
-    Sales -->|1. Valida Cliente (GET /api/customers/:id)| Customer
-    Sales -->|2. Abate Estoque (POST /api/catalog/books/:id/decrease-stock)| Catalog
+    Sales -->|"1. Valida cliente"| Customer
+    Sales -->|"2. Abate estoque"| Catalog
 
-    %% Dependencia compartilhada
-    Catalog -.->|Utiliza| Security
-    Customer -.->|Utiliza| Security
-    Sales -.->|Utiliza| Security
+    Catalog -.->|"Dependencia"| Security
+    Customer -.->|"Dependencia"| Security
+    Sales -.->|"Dependencia"| Security
 
-    %% Integracoes externas
-    Catalog -.->|Busca Obras| GoogleBooks
-    Catalog -.->|Gera QR Code| QRServer
-    Customer -.->|Busca Endereco por CEP| ViaCEP
+    Catalog -.->|"Busca livros"| GoogleBooks
+    Catalog -.->|"Gera QR code"| QRServer
+    Customer -.->|"Busca endereco"| ViaCEP
 
-    %% Persistencia
-    Catalog -->|JPA / Hibernate| Postgres
-    Customer -->|JPA / Hibernate| Postgres
-    Sales -->|JPA / Hibernate| Postgres
+    Catalog -->|"Persistencia JPA"| Postgres
+    Customer -->|"Persistencia JPA"| Postgres
+    Sales -->|"Persistencia JPA"| Postgres
 ```
 
 ---
