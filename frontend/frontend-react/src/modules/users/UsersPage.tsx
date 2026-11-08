@@ -12,7 +12,7 @@ import { useAuth } from '../../context/AuthContext';
 import { SystemUser, UserFormData } from '../../types';
 
 const allColumns: ColumnDefinition[] = [
-    { key: 'user', label: 'Operador' },
+    { key: 'user', label: 'Usuário' },
     { key: 'role', label: 'Perfil' },
     { key: 'status', label: 'Status' },
     { key: 'createdAt', label: 'Cadastrado em' },
@@ -74,16 +74,16 @@ export function UsersPage() {
             if (id) {
                 const updated = await userService.update(id, userData);
                 setUsers(prev => prev.map(u => (u.id === id ? updated : u)));
-                showNotice('Dados do operador atualizados com sucesso.', 'success');
+                showNotice('Dados do usuário atualizados com sucesso.', 'success');
             } else {
                 const created = await userService.create(userData);
                 setUsers(prev => [created, ...prev]);
-                showNotice('Operador cadastrado com sucesso.', 'success');
+                showNotice('Usuário cadastrado com sucesso.', 'success');
             }
             return true;
         } catch (err: unknown) {
-            console.error('Falha ao salvar operador', err);
-            const msg = err instanceof Error ? err.message : 'Não foi possível salvar o operador.';
+            console.error('Falha ao salvar usuário', err);
+            const msg = err instanceof Error ? err.message : 'Não foi possível salvar o usuário.';
             showNotice(msg, 'error');
             return false;
         }
@@ -104,12 +104,12 @@ export function UsersPage() {
             });
             setUsers(prev => prev.map(u => (u.id === targetUser.id ? updated : u)));
             showNotice(
-                `Operador ${updated.active ? 'ativado' : 'inativado'} com sucesso.`,
+                `Usuário ${updated.active ? 'ativado' : 'inativado'} com sucesso.`,
                 'success'
             );
         } catch (err) {
-            console.error('Falha ao alternar status do operador', err);
-            showNotice('Erro ao alterar status do operador.', 'error');
+            console.error('Falha ao alternar status do usuário', err);
+            showNotice('Erro ao alterar status do usuário.', 'error');
         }
     }
 
@@ -126,10 +126,10 @@ export function UsersPage() {
             await userService.delete(userToDelete.id);
             setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
             setUserToDelete(null);
-            showNotice('Operador removido com sucesso.', 'success');
+            showNotice('Usuário removido com sucesso.', 'success');
         } catch (err) {
-            console.error('Falha ao excluir operador', err);
-            showNotice('Erro ao excluir operador. Tente novamente.', 'error');
+            console.error('Falha ao excluir usuário', err);
+            showNotice('Erro ao excluir usuário. Tente novamente.', 'error');
         } finally {
             setDeleting(false);
         }
@@ -197,10 +197,10 @@ export function UsersPage() {
                 onClearAll={clearAll}
             />
 
-            {/* cards de estatisticas dos operadores */}
+            {/* cards de estatisticas dos usuarios */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-4 rounded-xl bg-white border border-[#e5e5e5] shadow-xs">
-                    <p className="text-[11px] font-medium text-[#737373]">Total de Operadores</p>
+                    <p className="text-[11px] font-medium text-[#737373]">Total de Usuários</p>
                     <p className="text-xl font-bold text-[#171717] mt-0.5">{users.length}</p>
                 </div>
                 <div className="p-4 rounded-xl bg-white border border-[#e5e5e5] shadow-xs">
@@ -220,8 +220,8 @@ export function UsersPage() {
             {/* layout padronizado de registros */}
             <RecordsTableLayout
                 title="Gestão de Usuários"
-                description="Controle de operadores internos, credenciais de acesso e permissões (RBAC)."
-                actionLabel="Novo Operador"
+                description="Cadastre e gerencie os usuários e seus níveis de acesso ao sistema."
+                actionLabel="Novo Usuário"
                 onAction={() => {
                     setEditingUser(null);
                     setIsModalOpen(true);
@@ -241,7 +241,7 @@ export function UsersPage() {
                 onPageChange={setCurrentPage}
                 isLoading={loading}
                 isEmpty={filteredUsers.length === 0}
-                emptyMessage={searchTerm ? 'Nenhum operador encontrado com os critérios de filtro.' : 'Nenhum operador cadastrado no sistema.'}
+                emptyMessage={searchTerm ? 'Nenhum usuário encontrado para esta busca.' : 'Nenhum usuário cadastrado no sistema.'}
                 extraFilters={
                     <div className="flex items-center gap-2">
                         {/* filtro de perfil */}
@@ -388,8 +388,8 @@ export function UsersPage() {
                                                             isSelf
                                                                 ? 'Você não pode inativar sua própria conta'
                                                                 : user.active
-                                                                ? 'Inativar acesso deste operador'
-                                                                : 'Ativar acesso deste operador'
+                                                                ? 'Inativar acesso deste usuário'
+                                                                : 'Ativar acesso deste usuário'
                                                         }
                                                     >
                                                         <Power className="w-3.5 h-3.5" />
@@ -404,7 +404,7 @@ export function UsersPage() {
                                                             setEditingUser(user);
                                                             setIsModalOpen(true);
                                                         }}
-                                                        title="Editar operador"
+                                                        title="Editar usuário"
                                                     >
                                                         <Edit2 className="w-3.5 h-3.5" />
                                                     </Button>
@@ -419,7 +419,7 @@ export function UsersPage() {
                                                         title={
                                                             isSelf
                                                                 ? 'Você não pode excluir sua própria conta'
-                                                                : 'Excluir operador'
+                                                                : 'Excluir usuário'
                                                         }
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
@@ -451,8 +451,8 @@ export function UsersPage() {
                 isOpen={Boolean(userToDelete)}
                 onClose={() => setUserToDelete(null)}
                 onConfirm={handleConfirmDelete}
-                title="Excluir Operador"
-                description={`Tem certeza que deseja remover o operador "${userToDelete?.name}" (${userToDelete?.email})? Esta ação não pode ser desfeita.`}
+                title="Excluir Usuário"
+                description={`Tem certeza que deseja remover o usuário "${userToDelete?.name}" (${userToDelete?.email})? Esta ação não pode ser desfeita.`}
                 confirmText={deleting ? 'Excluindo...' : 'Sim, Excluir'}
                 destructive
             />

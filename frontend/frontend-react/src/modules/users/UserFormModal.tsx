@@ -27,11 +27,11 @@ export function UserFormModal({
 
     const schema = React.useMemo(() => {
         return z.object({
-            name: z.string().min(1, 'Informe o nome completo do operador.'),
+            name: z.string().min(1, 'Informe o nome completo do usuário.'),
             email: z
                 .string()
-                .min(1, 'Informe o e-mail corporativo.')
-                .email('Informe um e-mail válido (ex: operador@bookstore.internal).'),
+                .min(1, 'Informe o e-mail de acesso.')
+                .email('Informe um e-mail válido (ex: usuario@bookstore.internal).'),
             password: isEdit
                 ? z
                       .string()
@@ -128,11 +128,11 @@ export function UserFormModal({
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={isEdit ? 'Editar Operador' : 'Novo Operador do Sistema'}
+            title={isEdit ? 'Editar Usuário' : 'Novo Usuário'}
             description={
                 isEdit
-                    ? 'Atualize os dados de perfil, credenciais ou permissão do operador.'
-                    : 'Cadastre um novo usuário interno com perfil de Administrador ou Vendedor.'
+                    ? 'Atualize os dados e o tipo de perfil do usuário.'
+                    : 'Cadastre um novo usuário com perfil de Administrador ou Vendedor.'
             }
         >
             <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -255,7 +255,7 @@ export function UserFormModal({
                             />
                             <div>
                                 <span className="text-xs font-semibold text-[#171717]">
-                                    Operador Ativo
+                                    Usuário Ativo
                                 </span>
                                 <p className="text-[11px] text-[#737373]">
                                     {isActive
@@ -283,7 +283,7 @@ export function UserFormModal({
                         className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
                     >
                         {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />}
-                        {isEdit ? 'Salvar Alterações' : 'Criar Operador'}
+                        {isEdit ? 'Salvar Alterações' : 'Cadastrar Usuário'}
                     </Button>
                 </div>
             </form>

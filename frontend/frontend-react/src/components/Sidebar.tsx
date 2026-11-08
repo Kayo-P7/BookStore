@@ -63,7 +63,7 @@ export function Sidebar({
                   {
                       to: '/users',
                       label: 'Usuários',
-                      description: 'Operadores e controle de acesso',
+                      description: 'Gerenciamento de contas e acessos',
                       icon: UserCog
                   }
               ]
