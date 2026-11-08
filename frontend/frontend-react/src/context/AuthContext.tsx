@@ -7,6 +7,7 @@ export interface AuthUser {
     name: string;
     email: string;
     role: UserRole;
+    mustChangePassword?: boolean;
 }
 
 export interface AuthContextType {
@@ -15,9 +16,11 @@ export interface AuthContextType {
     isAuthenticated: boolean;
     isAdmin: boolean;
     isSeller: boolean;
-    login: (credentials: { email: string; password: string }) => Promise<void>;
+    mustChangePassword: boolean;
+    login: (credentials: { email: string; password: string }) => Promise<AuthUser>;
     logout: () => void;
     hasRole: (role: UserRole) => boolean;
+    markPasswordChanged: (tokens?: { accessToken?: string; refreshToken?: string }) => void;
 }
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
@@ -56,7 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             userId: response.userId,
             name: response.name,
             email: response.email,
-            role: normalizedRole
+            role: normalizedRole,
+            mustChangePassword: Boolean(response.mustChangePassword)
         };
 
         localStorage.setItem(TOKEN_KEY, response.accessToken);
@@ -64,6 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         setToken(response.accessToken);
         setUser(authUser);
+        return authUser;
     }, []);
 
     const logout = React.useCallback(() => {
@@ -71,6 +76,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem(USER_KEY);
         setToken(null);
         setUser(null);
+    }, []);
+
+    const markPasswordChanged = React.useCallback((tokens?: { accessToken?: string; refreshToken?: string }) => {
+        if (tokens?.accessToken) {
+            localStorage.setItem(TOKEN_KEY, tokens.accessToken);
+            setToken(tokens.accessToken);
+        }
+        setUser(prev => {
+            if (!prev) return null;
+            const updated: AuthUser = { ...prev, mustChangePassword: false };
+            localStorage.setItem(USER_KEY, JSON.stringify(updated));
+            return updated;
+        });
     }, []);
 
     const hasRole = React.useCallback((role: UserRole) => {
@@ -81,6 +99,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const userRole = user?.role ? user.role.replace('ROLE_', '').toUpperCase() : '';
     const isAdmin = userRole === 'ADMIN';
     const isSeller = userRole === 'SELLER';
+    const mustChangePassword = Boolean(user?.mustChangePassword);
 
     const value = React.useMemo<AuthContextType>(() => ({
         user,
@@ -88,10 +107,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated,
         isAdmin,
         isSeller,
+        mustChangePassword,
         login,
         logout,
-        hasRole
-    }), [user, token, isAuthenticated, isAdmin, isSeller, login, logout, hasRole]);
+        hasRole,
+        markPasswordChanged
+    }), [user, token, isAuthenticated, isAdmin, isSeller, mustChangePassword, login, logout, hasRole, markPasswordChanged]);
 
     return (
         <AuthContext.Provider value={value}>

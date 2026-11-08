@@ -81,6 +81,7 @@ export interface SystemUser {
     email: string;
     role: string;
     active: boolean;
+    mustChangePassword?: boolean;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -101,4 +102,5 @@ export interface AuthResponse {
     name: string;
     email: string;
     role: UserRole;
+    mustChangePassword?: boolean;
 }

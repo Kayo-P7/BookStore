@@ -11,6 +11,7 @@ import { ServicesPage } from '../modules/services/ServicesPage';
 import { SettingsPage } from '../modules/settings/SettingsPage';
 import { UsersPage } from '../modules/users/UsersPage';
 import { LoginPage } from '../modules/auth/LoginPage';
+import { PrimeiroAcessoPage } from '../modules/auth/PrimeiroAcessoPage';
 import { NotFoundPage } from '../modules/not-found/NotFoundPage';
 
 export function AppRoutes() {
@@ -26,6 +27,14 @@ export function AppRoutes() {
                 <Route path="forgot-password" element={<Navigate to="/auth/login" replace />} />
                 <Route index element={<Navigate to="/auth/login" replace />} />
             </Route>
+
+            {/* rota de primeiro acesso para troca obrigatoria de senha */}
+            <Route path="/primeiro-acesso" element={
+                <ProtectedRoute>
+                    <PrimeiroAcessoPage />
+                </ProtectedRoute>
+            } />
+            <Route path="/auth/primeiro-acesso" element={<Navigate to="/primeiro-acesso" replace />} />
 
             {/* layout autenticado principal protegido por sessao */}
             <Route path="/" element={

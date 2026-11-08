@@ -45,7 +45,11 @@ export function LoginPage() {
         setSubmitting(true);
         setAuthError(null);
         try {
-            await login({ email: data.email, password: data.password });
+            const authUser = await login({ email: data.email, password: data.password });
+            if (authUser?.mustChangePassword) {
+                navigate('/primeiro-acesso', { replace: true });
+                return;
+            }
             const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
             navigate(from, { replace: true });
         } catch (err: unknown) {

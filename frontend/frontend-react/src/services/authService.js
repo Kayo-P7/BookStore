@@ -18,5 +18,13 @@ export const authService = {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken })
+        }),
+
+    // altera a senha do operador no primeiro acesso ou atualizacao de credencial
+    changePassword: payload =>
+        httpClient(`${BASE_URL}/change-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         })
 };

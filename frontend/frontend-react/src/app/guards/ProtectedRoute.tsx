@@ -10,11 +10,20 @@ interface ProtectedRouteProps {
 
 // guarda de rotas que restringe acesso apenas a operadores autenticados com permissoes validas
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
-    const { isAuthenticated, user } = useAuth();
+    const { isAuthenticated, user, mustChangePassword } = useAuth();
     const location = useLocation();
 
     if (!isAuthenticated) {
         return <Navigate to="/auth/login" state={{ from: location }} replace />;
+    }
+
+    // intercepta operadores que necessitam cadastrar nova senha pessoal no primeiro acesso
+    if (mustChangePassword) {
+        if (location.pathname !== '/primeiro-acesso' && location.pathname !== '/auth/primeiro-acesso') {
+            return <Navigate to="/primeiro-acesso" replace />;
+        }
+    } else if (location.pathname === '/primeiro-acesso' || location.pathname === '/auth/primeiro-acesso') {
+        return <Navigate to="/dashboard" replace />;
     }
 
     if (allowedRoles && user) {
@@ -30,9 +39,12 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
 
 // guarda que redireciona usuarios ja autenticados para fora das telas de login
 export function PublicRoute({ children }: { children?: React.ReactNode }) {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, mustChangePassword } = useAuth();
 
     if (isAuthenticated) {
+        if (mustChangePassword) {
+            return <Navigate to="/primeiro-acesso" replace />;
+        }
         return <Navigate to="/dashboard" replace />;
     }
 

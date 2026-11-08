@@ -118,9 +118,12 @@ export function UserFormModal({
             const payload: UserFormData = {
                 name: values.name.trim(),
                 email: values.email.trim().toLowerCase(),
-                role: values.role,
-                active: values.active
+                role: values.role
             };
+
+            if (isEdit && typeof values.active === 'boolean') {
+                payload.active = values.active;
+            }
 
             if (values.password && values.password.trim().length > 0) {
                 payload.password = values.password.trim();

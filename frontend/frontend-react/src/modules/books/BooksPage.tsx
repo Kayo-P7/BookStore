@@ -134,15 +134,11 @@ export function BooksPage() {
             <RecordsTableLayout
                 title="Gestão de Catálogo"
                 description={`Gerenciamento de títulos, inventário e preços (${books.length} títulos cadastrados)`}
-                actionLabel={isAdmin ? 'Novo Livro' : undefined}
-                onAction={
-                    isAdmin
-                        ? () => {
-                              setEditingBook(null);
-                              setIsModalOpen(true);
-                          }
-                        : undefined
-                }
+                actionLabel="Novo Livro"
+                onAction={() => {
+                    setEditingBook(null);
+                    setIsModalOpen(true);
+                }}
                 searchTerm={searchTerm}
                 onSearchChange={val => {
                     setSearchTerm(val);
@@ -236,30 +232,28 @@ export function BooksPage() {
                                         {visibleColumns.includes('actions') && (
                                             <TableCell className="text-right">
                                                 <div className="flex items-center justify-end gap-1.5">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                        onClick={() => {
+                                                            setEditingBook(book);
+                                                            setIsModalOpen(true);
+                                                        }}
+                                                        title="Editar livro"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" />
+                                                    </Button>
                                                     {isAdmin && (
-                                                        <>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                                                                onClick={() => {
-                                                                    setEditingBook(book);
-                                                                    setIsModalOpen(true);
-                                                                }}
-                                                                title="Editar livro"
-                                                            >
-                                                                <Edit2 className="w-3.5 h-3.5" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                className="h-8 w-8 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                                                                onClick={() => setBookToDelete(book)}
-                                                                title="Excluir livro"
-                                                            >
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </Button>
-                                                        </>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            className="h-8 w-8 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
+                                                            onClick={() => setBookToDelete(book)}
+                                                            title="Excluir livro"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </Button>
                                                     )}
                                                 </div>
                                             </TableCell>
