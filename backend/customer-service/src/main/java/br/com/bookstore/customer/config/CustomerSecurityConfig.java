@@ -24,11 +24,11 @@ public class CustomerSecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/customers/cep/**").permitAll()
-                .requestMatchers("/api/users/**").hasRole(SecurityRoles.ADMIN)
-                .requestMatchers(HttpMethod.POST, "/api/customers").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
-                .requestMatchers(HttpMethod.PUT, "/api/customers/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
-                .requestMatchers(HttpMethod.DELETE, "/api/customers/**").hasRole(SecurityRoles.ADMIN)
-                .requestMatchers("/api/customers/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
+                .requestMatchers("/api/users", "/api/users/**").hasRole(SecurityRoles.ADMIN)
+                .requestMatchers(HttpMethod.POST, "/api/customers", "/api/customers/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
+                .requestMatchers(HttpMethod.PUT, "/api/customers", "/api/customers/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
+                .requestMatchers(HttpMethod.DELETE, "/api/customers", "/api/customers/**").hasRole(SecurityRoles.ADMIN)
+                .requestMatchers("/api/customers", "/api/customers/**").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
                 .anyRequest().authenticated()
         );
     }

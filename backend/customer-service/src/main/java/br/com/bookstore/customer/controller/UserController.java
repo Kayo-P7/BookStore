@@ -6,6 +6,7 @@ import br.com.bookstore.customer.dto.UserUpdateRequest;
 import br.com.bookstore.customer.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.List;
 // controlador rest para administracao de operadores do sistema (usuarios)
 @RestController
 @RequestMapping("/api/users")
+@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private final UserService service;
