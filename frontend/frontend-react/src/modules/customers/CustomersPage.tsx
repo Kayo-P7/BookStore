@@ -9,6 +9,7 @@ import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
 import { customerService } from '../../services/customerService';
 import { Customer } from '../../types';
+import { useAuth } from '../../context/AuthContext';
 import { maskPhone } from '../../utils/masks';
 
 const allColumns: ColumnDefinition[] = [
@@ -21,6 +22,7 @@ const allColumns: ColumnDefinition[] = [
 ];
 
 export function CustomersPage() {
+    const { isAdmin } = useAuth();
     const [customers, setCustomers] = React.useState<Customer[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [searchTerm, setSearchTerm] = React.useState('');
@@ -215,15 +217,17 @@ export function CustomersPage() {
                                                 >
                                                     <Edit2 className="w-3.5 h-3.5" />
                                                 </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
-                                                    onClick={() => setCustomerToDelete(customer)}
-                                                    title="Excluir cliente"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </Button>
+                                                {isAdmin && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
+                                                        onClick={() => setCustomerToDelete(customer)}
+                                                        title="Excluir cliente"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </TableCell>
                                     )}
@@ -246,7 +250,7 @@ export function CustomersPage() {
 
             <ConfirmDialog
                 isOpen={Boolean(customerToDelete)}
-                title="Excluir Usuário"
+                title="Excluir Cliente"
                 description={`Deseja realmente excluir "${customerToDelete?.name}"? Esta ação removerá o cadastro permanentemente e é irreversível.`}
                 confirmText="Excluir Permanentemente"
                 cancelText="Cancelar"

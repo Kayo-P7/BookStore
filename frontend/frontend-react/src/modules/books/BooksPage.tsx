@@ -7,9 +7,11 @@ import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice
 import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTableLayout';
 import { BookFormModal } from './BookFormModal';
 import { formatCurrency } from '../../utils/formatters';
+import { useAuth } from '../../context/AuthContext';
 import { cn } from '../../components/ui/button';
 
 export function BooksPage() {
+    const { isAdmin } = useAuth();
     const [books, setBooks] = React.useState<Book[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [searchTerm, setSearchTerm] = React.useState('');
@@ -103,8 +105,8 @@ export function BooksPage() {
             <RecordsTableLayout
                 title="Gestão de Catálogo"
                 description={`Gerenciamento de títulos, inventário e preços (${books.length} títulos cadastrados)`}
-                actionLabel="Novo Livro"
-                onAction={() => setIsModalOpen(true)}
+                actionLabel={isAdmin ? "Novo Livro" : undefined}
+                onAction={isAdmin ? () => setIsModalOpen(true) : undefined}
                 searchTerm={searchTerm}
                 onSearchChange={val => {
                     setSearchTerm(val);
