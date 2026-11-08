@@ -21,10 +21,10 @@ public class CatalogSecurityConfig {
         return template.build(http, auth -> auth
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/graphql/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/catalog/books/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/catalog/books", "/api/catalog/books/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/integrations/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/catalog/books/*/decrease-stock").hasAnyRole(SecurityRoles.SELLER, SecurityRoles.ADMIN)
-                .requestMatchers(HttpMethod.POST, "/api/catalog/books/**").hasRole(SecurityRoles.ADMIN)
+                .requestMatchers(HttpMethod.POST, "/api/catalog/books", "/api/catalog/books/**").hasRole(SecurityRoles.ADMIN)
                 .requestMatchers(HttpMethod.PUT, "/api/catalog/books/**").hasRole(SecurityRoles.ADMIN)
                 .requestMatchers(HttpMethod.DELETE, "/api/catalog/books/**").hasRole(SecurityRoles.ADMIN)
                 .anyRequest().authenticated()
