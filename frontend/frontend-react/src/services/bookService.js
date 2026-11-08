@@ -16,6 +16,20 @@ export const bookService = {
             body: JSON.stringify(book)
         }),
 
+    // altera dados de um livro existente
+    update: (id, book) =>
+        httpClient(`${BASE_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(book)
+        }),
+
+    // exclui um livro do catalogo
+    delete: id =>
+        httpClient(`${BASE_URL}/${id}`, {
+            method: 'DELETE'
+        }),
+
     // consulta volumes de livros no google books com fallback resiliente
     searchGoogleBooks: async query => {
         if (!query || !query.trim()) return { items: [], totalItems: 0 };

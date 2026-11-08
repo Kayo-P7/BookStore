@@ -1,14 +1,16 @@
 import * as React from 'react';
+import { Edit2, Trash2 } from 'lucide-react';
 import { bookService } from '../../services/bookService';
 import { Book } from '../../types';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
+import { Button } from '../../components/ui/button';
 import { SkeletonTable } from '../../components/ui/skeleton';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
 import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTableLayout';
 import { BookFormModal } from './BookFormModal';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { formatCurrency } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
-import { cn } from '../../components/ui/button';
 
 export function BooksPage() {
     const { isAdmin } = useAuth();
@@ -16,6 +18,9 @@ export function BooksPage() {
     const [loading, setLoading] = React.useState(true);
     const [searchTerm, setSearchTerm] = React.useState('');
     const [isModalOpen, setIsModalOpen] = React.useState(false);
+    const [editingBook, setEditingBook] = React.useState<Book | null>(null);
+    const [bookToDelete, setBookToDelete] = React.useState<Book | null>(null);
+    const [deleting, setDeleting] = React.useState(false);
     const [currentPage, setCurrentPage] = React.useState(1);
     const pageSize = 8;
 
@@ -27,7 +32,8 @@ export function BooksPage() {
         { key: 'publisher', label: 'Editora' },
         { key: 'price', label: 'Preço' },
         { key: 'stock', label: 'Estoque' },
-        { key: 'status', label: 'Status' }
+        { key: 'status', label: 'Status' },
+        { key: 'actions', label: 'Ações' }
     ];
 
     const [visibleColumns, setVisibleColumns] = React.useState<string[]>([
@@ -36,12 +42,13 @@ export function BooksPage() {
         'authors',
         'price',
         'stock',
-        'status'
+        'status',
+        'actions'
     ]);
 
     const { notice, notices, isExiting, showNotice, closeNotice, clearAll } = useScreenNotice(4000);
 
-    async function loadBooks() {
+    const loadBooks = React.useCallback(async () => {
         setLoading(true);
         try {
             const data = await bookService.findAll();
@@ -53,11 +60,11 @@ export function BooksPage() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [showNotice]);
 
     React.useEffect(() => {
         loadBooks();
-    }, []);
+    }, [loadBooks]);
 
     function handleToggleColumn(key: string) {
         setVisibleColumns(prev =>
@@ -65,16 +72,37 @@ export function BooksPage() {
         );
     }
 
-    async function handleAddBook(data: Omit<Book, 'id'>) {
+    async function handleSaveBook(data: Omit<Book, 'id'>, id?: number): Promise<boolean> {
         try {
-            await bookService.create(data);
-            showNotice('Livro cadastrado com sucesso no catálogo.', 'success');
-            await loadBooks();
-            setCurrentPage(1);
+            if (id) {
+                const updated = await bookService.update(id, data);
+                setBooks(prev => prev.map(b => (b.id === id ? updated : b)));
+                showNotice('Livro atualizado com sucesso no catálogo.', 'success');
+            } else {
+                const created = await bookService.create(data);
+                setBooks(prev => [created, ...prev]);
+                showNotice('Livro cadastrado com sucesso no catálogo.', 'success');
+                setCurrentPage(1);
+            }
             return true;
         } catch {
-            showNotice('Erro ao cadastrar livro. Tente novamente.', 'error');
+            showNotice('Erro ao salvar livro. Verifique os dados e tente novamente.', 'error');
             throw new Error('Falha ao salvar livro');
+        }
+    }
+
+    async function handleConfirmDelete() {
+        if (!bookToDelete) return;
+        setDeleting(true);
+        try {
+            await bookService.delete(bookToDelete.id);
+            setBooks(prev => prev.filter(b => b.id !== bookToDelete.id));
+            setBookToDelete(null);
+            showNotice('Livro removido do catálogo com sucesso.', 'success');
+        } catch {
+            showNotice('Erro ao excluir livro do catálogo.', 'error');
+        } finally {
+            setDeleting(false);
         }
     }
 
@@ -95,7 +123,6 @@ export function BooksPage() {
 
     return (
         <div className="space-y-4">
-            {/* aviso de feedback com fade suave restrito a tela de livros */}
             <ScreenNotice
                 notices={notices}
                 notice={notice}
@@ -107,8 +134,15 @@ export function BooksPage() {
             <RecordsTableLayout
                 title="Gestão de Catálogo"
                 description={`Gerenciamento de títulos, inventário e preços (${books.length} títulos cadastrados)`}
-                actionLabel={isAdmin ? "Novo Livro" : undefined}
-                onAction={isAdmin ? () => setIsModalOpen(true) : undefined}
+                actionLabel={isAdmin ? 'Novo Livro' : undefined}
+                onAction={
+                    isAdmin
+                        ? () => {
+                              setEditingBook(null);
+                              setIsModalOpen(true);
+                          }
+                        : undefined
+                }
                 searchTerm={searchTerm}
                 onSearchChange={val => {
                     setSearchTerm(val);
@@ -124,7 +158,11 @@ export function BooksPage() {
                 onPageChange={setCurrentPage}
                 isLoading={loading}
                 isEmpty={filteredBooks.length === 0}
-                emptyMessage={searchTerm ? 'Nenhum livro encontrado para esta busca.' : 'Nenhum livro cadastrado no catálogo.'}
+                emptyMessage={
+                    searchTerm
+                        ? 'Nenhum livro encontrado para esta busca.'
+                        : 'Nenhum livro cadastrado no catálogo.'
+                }
             >
                 {loading ? (
                     <SkeletonTable rows={5} cols={visibleColumns.length} />
@@ -140,6 +178,9 @@ export function BooksPage() {
                                 {visibleColumns.includes('price') && <TableHead>Preço</TableHead>}
                                 {visibleColumns.includes('stock') && <TableHead className="text-right">Estoque</TableHead>}
                                 {visibleColumns.includes('status') && <TableHead className="text-right">Status</TableHead>}
+                                {visibleColumns.includes('actions') && (
+                                    <TableHead className="text-right">Ações</TableHead>
+                                )}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -192,6 +233,37 @@ export function BooksPage() {
                                                 </div>
                                             </TableCell>
                                         )}
+                                        {visibleColumns.includes('actions') && (
+                                            <TableCell className="text-right">
+                                                <div className="flex items-center justify-end gap-1.5">
+                                                    {isAdmin && (
+                                                        <>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                                                                onClick={() => {
+                                                                    setEditingBook(book);
+                                                                    setIsModalOpen(true);
+                                                                }}
+                                                                title="Editar livro"
+                                                            >
+                                                                <Edit2 className="w-3.5 h-3.5" />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-8 w-8 text-destructive/80 hover:text-destructive hover:bg-destructive/10"
+                                                                onClick={() => setBookToDelete(book)}
+                                                                title="Excluir livro"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </Button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                        )}
                                     </TableRow>
                                 );
                             })}
@@ -202,8 +274,22 @@ export function BooksPage() {
 
             <BookFormModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleAddBook}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setEditingBook(null);
+                }}
+                onSubmit={handleSaveBook}
+                editingBook={editingBook}
+            />
+
+            <ConfirmDialog
+                isOpen={Boolean(bookToDelete)}
+                title="Excluir Livro"
+                description={`Deseja realmente remover o título "${bookToDelete?.title}" do catálogo? Esta ação não pode ser desfeita.`}
+                confirmText={deleting ? 'Excluindo...' : 'Sim, Excluir'}
+                destructive
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setBookToDelete(null)}
             />
         </div>
     );
