@@ -41,17 +41,17 @@ public class BookController {
         return service.search(title);
     }
 
-    // cria novo registro de livro (exclusivo para administrador)
+    // cria novo registro de livro (vendedor e administrador)
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
     public BookResponse create(@Valid @RequestBody BookRequest request) {
         return service.save(request);
     }
 
-    // altera dados de um livro existente (exclusivo para administrador)
+    // altera dados de um livro existente (vendedor e administrador)
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
     public BookResponse update(@PathVariable Long id, @Valid @RequestBody BookRequest request) {
         return service.update(id, request);
     }
