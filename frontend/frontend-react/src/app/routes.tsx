@@ -11,7 +11,6 @@ import { ServicesPage } from '../modules/services/ServicesPage';
 import { SettingsPage } from '../modules/settings/SettingsPage';
 import { UsersPage } from '../modules/users/UsersPage';
 import { LoginPage } from '../modules/auth/LoginPage';
-import { ForgotPasswordPage } from '../modules/auth/ForgotPasswordPage';
 import { NotFoundPage } from '../modules/not-found/NotFoundPage';
 
 export function AppRoutes() {
@@ -24,7 +23,7 @@ export function AppRoutes() {
                 </PublicRoute>
             }>
                 <Route path="login" element={<LoginPage />} />
-                <Route path="forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="forgot-password" element={<Navigate to="/auth/login" replace />} />
                 <Route index element={<Navigate to="/auth/login" replace />} />
             </Route>
 
