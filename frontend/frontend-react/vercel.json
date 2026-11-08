@@ -2,51 +2,47 @@
   "rewrites": [
     {
       "source": "/api/catalog/:match*",
-      "destination": "https://RENDER_CATALOG_URL/api/catalog/:match*"
+      "destination": "https://bookstore-catalog.onrender.com/api/catalog/:match*"
     },
     {
       "source": "/api/integrations/:match*",
-      "destination": "https://RENDER_CATALOG_URL/api/integrations/:match*"
+      "destination": "https://bookstore-catalog.onrender.com/api/integrations/:match*"
     },
     {
       "source": "/graphql",
-      "destination": "https://RENDER_CATALOG_URL/graphql"
+      "destination": "https://bookstore-catalog.onrender.com/graphql"
     },
     {
       "source": "/api/customers/:match*",
-      "destination": "https://RENDER_CUSTOMER_URL/api/customers/:match*"
+      "destination": "https://bookstore-89lq.onrender.com/api/customers/:match*"
     },
     {
       "source": "/api/customers",
-      "destination": "https://RENDER_CUSTOMER_URL/api/customers"
+      "destination": "https://bookstore-89lq.onrender.com/api/customers"
     },
     {
       "source": "/api/auth/:match*",
-      "destination": "https://RENDER_CUSTOMER_URL/api/auth/:match*"
+      "destination": "https://bookstore-89lq.onrender.com/api/auth/:match*"
     },
     {
       "source": "/api/auth",
-      "destination": "https://RENDER_CUSTOMER_URL/api/auth"
+      "destination": "https://bookstore-89lq.onrender.com/api/auth"
     },
     {
       "source": "/api/users/:match*",
-      "destination": "https://RENDER_CUSTOMER_URL/api/users/:match*"
+      "destination": "https://bookstore-89lq.onrender.com/api/users/:match*"
     },
     {
       "source": "/api/users",
-      "destination": "https://RENDER_CUSTOMER_URL/api/users"
+      "destination": "https://bookstore-89lq.onrender.com/api/users"
     },
     {
       "source": "/api/sales/:match*",
-      "destination": "https://RENDER_SALES_URL/api/sales/:match*"
+      "destination": "https://bookstore-sales.onrender.com/api/sales/:match*"
     },
     {
       "source": "/api/sales",
-      "destination": "https://RENDER_SALES_URL/api/sales"
-    },
-    {
-      "source": "/api/:match*",
-      "destination": "https://RENDER_GATEWAY_URL/api/:match*"
+      "destination": "https://bookstore-sales.onrender.com/api/sales"
     },
     {
       "source": "/(.*)",
