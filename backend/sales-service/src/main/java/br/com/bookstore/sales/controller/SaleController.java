@@ -4,6 +4,7 @@ import br.com.bookstore.sales.dto.SaleRequest;
 import br.com.bookstore.sales.dto.SaleResponse;
 import br.com.bookstore.sales.service.SaleService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 // controlador rest para exposicao de operacoes sobre vendas
 @RestController
 @RequestMapping("/api/sales")
+@PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
 public class SaleController {
 
     private final SaleService service;
