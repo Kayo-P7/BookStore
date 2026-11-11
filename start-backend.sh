@@ -38,13 +38,50 @@ if ! command -v mvn &>/dev/null; then
     exit 1
 fi
 
+read_env_var() {
+    local var_name=$1
+    local default_val=$2
+    local val
+    val=$(grep -E "^${var_name}=" .env 2>/dev/null | tail -n 1 | cut -d '=' -f2 | tr -d ' "\r' || true)
+    echo "${val:-$default_val}"
+}
+
+DB_PORT=$(read_env_var "POSTGRES_PORT" "5432")
+CATALOG_PORT=$(read_env_var "CATALOG_SERVICE_PORT" "8081")
+CUSTOMER_PORT=$(read_env_var "CUSTOMER_SERVICE_PORT" "8082")
+SALES_PORT=$(read_env_var "SALES_SERVICE_PORT" "8083")
+LOAN_PORT=$(read_env_var "LOAN_SERVICE_PORT" "8085")
+
 # verificacao de conectividade com o postgresql
-DB_PORT=$(grep -E '^POSTGRES_PORT=' .env 2>/dev/null | cut -d '=' -f2 | tr -d ' "\r' || true)
-[ -z "$DB_PORT" ] && DB_PORT=5432
 if ! (echo > /dev/tcp/localhost/"$DB_PORT") 2>/dev/null; then
     echo -e "${YELLOW}[!] Aviso: Nao foi detectada conexao com o PostgreSQL na porta ${DB_PORT}.${NC}"
     echo -e "${YELLOW}    Certifique-se de que o banco de dados esteja ativo antes de iniciar os servicos.${NC}\n"
 fi
+
+# verificacao opcional do rabbitmq para mensageria assincrona
+ensure_rabbitmq() {
+    if (echo > /dev/tcp/localhost/5672) 2>/dev/null; then
+        echo -e "${GREEN}[OK] RabbitMQ detectado na porta 5672.${NC}"
+        return 0
+    fi
+
+    if command -v docker &>/dev/null && docker info &>/dev/null && [ -f "docker-compose.yml" ]; then
+        echo -e "${YELLOW}[!] RabbitMQ nao detectado na porta 5672. Iniciando container 'rabbitmq' via Docker Compose...${NC}"
+        if docker compose up -d rabbitmq >/dev/null 2>&1; then
+            local elapsed=0
+            while [ $elapsed -lt 30 ]; do
+                if (echo > /dev/tcp/localhost/5672) 2>/dev/null; then
+                    echo -e "${GREEN}[OK] RabbitMQ ativo na porta 5672.${NC}"
+                    return 0
+                fi
+                sleep 1
+                elapsed=$((elapsed + 1))
+            done
+        fi
+    fi
+
+    echo -e "${YELLOW}[!] Aviso: RabbitMQ nao detectado na porta 5672 (eventos ficarao em standby; emprestimos usarao fallback sob demanda).${NC}\n"
+}
 
 # verificacao de portas ocupadas
 check_port() {
@@ -63,25 +100,31 @@ TARGET_SERVICE="${1:-all}"
 
 case "$TARGET_SERVICE" in
     catalog)
-        check_port 8081 || exit 1
+        check_port "$CATALOG_PORT" || exit 1
         ;;
     customer)
-        check_port 8082 || exit 1
+        check_port "$CUSTOMER_PORT" || exit 1
         ;;
     sales)
-        check_port 8083 || exit 1
+        check_port "$SALES_PORT" || exit 1
+        ;;
+    loan)
+        check_port "$LOAN_PORT" || exit 1
         ;;
     all|"")
-        check_port 8081 || exit 1
-        check_port 8082 || exit 1
-        check_port 8083 || exit 1
+        check_port "$CATALOG_PORT" || exit 1
+        check_port "$CUSTOMER_PORT" || exit 1
+        check_port "$SALES_PORT" || exit 1
+        check_port "$LOAN_PORT" || exit 1
         ;;
     *)
         echo -e "${RED}[X] Servico invalido: ${TARGET_SERVICE}${NC}"
-        echo -e "Uso: $0 [all|catalog|customer|sales]"
+        echo -e "Uso: $0 [all|catalog|customer|sales|loan]"
         exit 1
         ;;
 esac
+
+ensure_rabbitmq
 
 mkdir -p logs
 
@@ -95,7 +138,7 @@ cleanup() {
             kill "$pid" 2>/dev/null || true
         fi
     done
-    for port in 8081 8082 8083; do
+    for port in "$CATALOG_PORT" "$CUSTOMER_PORT" "$SALES_PORT" "$LOAN_PORT"; do
         fuser -k -9 "${port}/tcp" 2>/dev/null || true
     done
     echo -e "${GREEN}[BookStore] Todos os microsservicos backend foram finalizados.${NC}"
@@ -136,26 +179,34 @@ wait_for_health() {
 PID_CATALOG=""
 PID_CUSTOMER=""
 PID_SALES=""
+PID_LOAN=""
 
 start_catalog() {
-    echo -e "${CYAN}-> Iniciando catalog-service na porta 8081 (logs em logs/catalog-service.log)...${NC}"
+    echo -e "${CYAN}-> Iniciando catalog-service na porta ${CATALOG_PORT} (logs em logs/catalog-service.log)...${NC}"
     mvn spring-boot:run -f backend/pom.xml -pl catalog-service > logs/catalog-service.log 2>&1 &
     PID_CATALOG=$!
     PIDS+=("$PID_CATALOG")
 }
 
 start_customer() {
-    echo -e "${CYAN}-> Iniciando customer-service na porta 8082 (logs em logs/customer-service.log)...${NC}"
+    echo -e "${CYAN}-> Iniciando customer-service na porta ${CUSTOMER_PORT} (logs em logs/customer-service.log)...${NC}"
     mvn spring-boot:run -f backend/pom.xml -pl customer-service > logs/customer-service.log 2>&1 &
     PID_CUSTOMER=$!
     PIDS+=("$PID_CUSTOMER")
 }
 
 start_sales() {
-    echo -e "${CYAN}-> Iniciando sales-service na porta 8083 (logs em logs/sales-service.log)...${NC}"
+    echo -e "${CYAN}-> Iniciando sales-service na porta ${SALES_PORT} (logs em logs/sales-service.log)...${NC}"
     mvn spring-boot:run -f backend/pom.xml -pl sales-service > logs/sales-service.log 2>&1 &
     PID_SALES=$!
     PIDS+=("$PID_SALES")
+}
+
+start_loan() {
+    echo -e "${CYAN}-> Iniciando loan-service na porta ${LOAN_PORT} (logs em logs/loan-service.log)...${NC}"
+    mvn spring-boot:run -f backend/pom.xml -pl loan-service > logs/loan-service.log 2>&1 &
+    PID_LOAN=$!
+    PIDS+=("$PID_LOAN")
 }
 
 set +e
@@ -165,31 +216,38 @@ if [ "$TARGET_SERVICE" = "all" ] || [ -z "$TARGET_SERVICE" ]; then
     start_catalog
     start_customer
 
-    wait_for_health "catalog-service" 8081 "$PID_CATALOG"
-    wait_for_health "customer-service" 8082 "$PID_CUSTOMER"
+    wait_for_health "catalog-service" "$CATALOG_PORT" "$PID_CATALOG"
+    wait_for_health "customer-service" "$CUSTOMER_PORT" "$PID_CUSTOMER"
 
-    echo -e "\n${BLUE}[Fase 2/2] Iniciando servico dependente: sales-service...${NC}"
+    echo -e "\n${BLUE}[Fase 2/2] Iniciando servicos dependentes: sales-service e loan-service...${NC}"
     start_sales
-    wait_for_health "sales-service" 8083 "$PID_SALES"
+    start_loan
+    wait_for_health "sales-service" "$SALES_PORT" "$PID_SALES"
+    wait_for_health "loan-service" "$LOAN_PORT" "$PID_LOAN"
 
 elif [ "$TARGET_SERVICE" = "catalog" ]; then
     start_catalog
-    wait_for_health "catalog-service" 8081 "$PID_CATALOG"
+    wait_for_health "catalog-service" "$CATALOG_PORT" "$PID_CATALOG"
 
 elif [ "$TARGET_SERVICE" = "customer" ]; then
     start_customer
-    wait_for_health "customer-service" 8082 "$PID_CUSTOMER"
+    wait_for_health "customer-service" "$CUSTOMER_PORT" "$PID_CUSTOMER"
 
 elif [ "$TARGET_SERVICE" = "sales" ]; then
     start_sales
-    wait_for_health "sales-service" 8083 "$PID_SALES"
+    wait_for_health "sales-service" "$SALES_PORT" "$PID_SALES"
+
+elif [ "$TARGET_SERVICE" = "loan" ]; then
+    start_loan
+    wait_for_health "loan-service" "$LOAN_PORT" "$PID_LOAN"
 fi
 
 echo -e "\n${GREEN}${BOLD}[BookStore] Microsservicos prontos:${NC}"
-echo -e " • Catalog Service:  ${CYAN}http://localhost:8081${NC} (Health: /actuator/health | GraphQL: /graphql)"
-echo -e " • Customer Service: ${CYAN}http://localhost:8082${NC} (Health: /actuator/health)"
-echo -e " • Sales Service:    ${CYAN}http://localhost:8083${NC} (Health: /actuator/health)"
-echo -e " • Logs salvos em:   logs/catalog-service.log, logs/customer-service.log, logs/sales-service.log"
+echo -e " • Catalog Service:  ${CYAN}http://localhost:${CATALOG_PORT}${NC} (Health: /actuator/health | GraphQL: /graphql)"
+echo -e " • Customer Service: ${CYAN}http://localhost:${CUSTOMER_PORT}${NC} (Health: /actuator/health)"
+echo -e " • Sales Service:    ${CYAN}http://localhost:${SALES_PORT}${NC} (Health: /actuator/health)"
+echo -e " • Loan Service:     ${CYAN}http://localhost:${LOAN_PORT}${NC} (Health: /actuator/health)"
+echo -e " • Logs salvos em:   logs/catalog-service.log, logs/customer-service.log, logs/sales-service.log, logs/loan-service.log"
 echo -e " • Acompanhar logs:  ${YELLOW}tail -f logs/*.log${NC}"
 echo -e "${YELLOW}Pressione Ctrl+C para encerrar todos os servicos.${NC}\n"
 
