@@ -1,15 +1,17 @@
-
 package br.com.bookstore.loan.controller;
 
 import br.com.bookstore.loan.dto.BookLoanInventoryRequestDTO;
+import br.com.bookstore.loan.dto.BookLoanInventoryResponseDTO;
 import br.com.bookstore.loan.dto.LoanRequestDTO;
 import br.com.bookstore.loan.dto.LoanResponseDTO;
-import br.com.bookstore.loan.model.BookLoanInventory;
 import br.com.bookstore.loan.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+
+// controlador rest para operacoes de emprestimos, devolucoes e inventario
 @RestController
 @RequestMapping("/api/loans")
 public class LoanController {
@@ -22,9 +24,7 @@ public class LoanController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public LoanResponseDTO createLoan(
-            @Valid @RequestBody LoanRequestDTO request
-    ) {
+    public LoanResponseDTO createLoan(@Valid @RequestBody LoanRequestDTO request) {
         return loanService.createLoan(request);
     }
 
@@ -35,10 +35,20 @@ public class LoanController {
 
     @PostMapping("/inventory")
     @ResponseStatus(HttpStatus.CREATED)
-    public BookLoanInventory registerInventory(
+    public BookLoanInventoryResponseDTO registerInventory(
             @Valid @RequestBody BookLoanInventoryRequestDTO request
     ) {
         return loanService.registerInventory(request);
+    }
+
+    @GetMapping("/inventory")
+    public List<BookLoanInventoryResponseDTO> findAllInventories() {
+        return loanService.findAllInventories();
+    }
+
+    @GetMapping("/inventory/{bookId}")
+    public BookLoanInventoryResponseDTO findInventoryByBookId(@PathVariable Long bookId) {
+        return loanService.findInventoryByBookId(bookId);
     }
 
     @GetMapping
@@ -47,9 +57,7 @@ public class LoanController {
     }
 
     @GetMapping("/{loanId}")
-    public LoanResponseDTO findLoanById(
-            @PathVariable Long loanId
-    ) {
+    public LoanResponseDTO findLoanById(@PathVariable Long loanId) {
         return loanService.findLoanById(loanId);
     }
 }

@@ -25,6 +25,16 @@ public class BookLoanInventory {
     public BookLoanInventory() {
     }
 
+    public static BookLoanInventory initialize(Long bookId, Integer totalCopies) {
+        int copies = totalCopies != null ? Math.max(totalCopies, 0) : 0;
+        BookLoanInventory inventory = new BookLoanInventory();
+        inventory.setBookId(bookId);
+        inventory.setTotalCopies(copies);
+        inventory.setAvailableCopies(copies);
+        inventory.setBorrowedCopies(0);
+        return inventory;
+    }
+
     public Long getId() {
         return id;
     }

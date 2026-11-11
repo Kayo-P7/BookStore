@@ -1,9 +1,9 @@
 package br.com.bookstore.loan.client;
 
 import br.com.bookstore.loan.client.dto.CatalogBookResponse;
-import org.springframework.http.HttpStatus;
+import br.com.bookstore.loan.exception.ExternalServiceException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 
 @Component
@@ -11,28 +11,26 @@ public class CatalogClient {
 
     private final RestClient catalogRestClient;
 
-    public CatalogClient(RestClient catalogRestClient) {
+    public CatalogClient(@Qualifier("catalogRestClient") RestClient catalogRestClient) {
         this.catalogRestClient = catalogRestClient;
     }
 
-    public void validateBookExists(Long bookId) {
-        try {
-            CatalogBookResponse book = catalogRestClient
-                    .get()
-                    .uri("/api/catalog/books/{id}", bookId)
-                    .retrieve()
-                    .body(CatalogBookResponse.class);
-
-            if (book == null || book.id() == null) {
-                throw new IllegalStateException(
-                        "Catalog returned an invalid book response"
-                );
-            }
-
-        } catch (HttpClientErrorException.NotFound exception) {
-            throw new IllegalArgumentException(
-                    "Book not found in catalog: " + bookId
-            );
+    public CatalogBookResponse getBookById(Long bookId) {
+        CatalogBookResponse book = ServiceClientHelper.getRequiredResource(
+                catalogRestClient,
+                "/api/catalog/books/{id}",
+                bookId,
+                CatalogBookResponse.class,
+                "Book",
+                "catalog-service"
+        );
+        if (book.id() == null) {
+            throw new ExternalServiceException("Catalog returned an invalid book response");
         }
+        return book;
+    }
+
+    public void validateBookExists(Long bookId) {
+        getBookById(bookId);
     }
 }
