@@ -122,3 +122,11 @@ export interface LoanRequest {
     customerId: number;
     dueDate: string;
 }
+
+export interface BookLoanInventory {
+    id: number;
+    bookId: number;
+    totalCopies: number;
+    availableCopies: number;
+    borrowedCopies: number;
+}

@@ -7,7 +7,7 @@ import { Modal } from '../../components/ui/modal';
 import { Button } from '../../components/ui/button';
 import { CustomSelect } from '../../components/ui/select';
 import { Input } from '../../components/ui/input';
-import { Book, Customer } from '../../types';
+import { Book, BookLoanInventory, Customer } from '../../types';
 
 const schema = z.object({
     customerId: z.string().min(1, 'Selecione um cliente.'),
@@ -23,6 +23,7 @@ interface LoanFormModalProps {
     onSubmit: (data: { customerId: number; bookId: number; dueDate: string }) => Promise<boolean>;
     customers: Customer[];
     books: Book[];
+    inventories: BookLoanInventory[];
 }
 
 function localDateString(date: Date) {
@@ -32,7 +33,7 @@ function localDateString(date: Date) {
     return `${year}-${month}-${day}`;
 }
 
-export function LoanFormModal({ isOpen, onClose, onSubmit, customers, books }: LoanFormModalProps) {
+export function LoanFormModal({ isOpen, onClose, onSubmit, customers, books, inventories }: LoanFormModalProps) {
     const [submitting, setSubmitting] = React.useState(false);
     const [formError, setFormError] = React.useState<string | null>(null);
     const { handleSubmit, control, watch, reset, clearErrors, formState: { errors } } = useForm<FormData>({
@@ -50,16 +51,26 @@ export function LoanFormModal({ isOpen, onClose, onSubmit, customers, books }: L
 
     const selectedBookId = watch('bookId');
     const selectedBook = books.find(book => String(book.id) === selectedBookId);
+
+    function availableCopiesFor(book: Book) {
+        const inventory = inventories.find(item => item.bookId === book.id);
+        return inventory ? inventory.availableCopies : Number(book.stock || 0);
+    }
+
+    const selectedBookAvailable = selectedBook ? availableCopiesFor(selectedBook) : 0;
     const customerOptions = customers.map(customer => ({
         value: String(customer.id),
         label: `${customer.name} (${customer.email})`
     }));
-    const bookOptions = books.map(book => ({
-        value: String(book.id),
-        label: book.title,
-        description: `${book.authors || 'Autor não informado'} • ${book.stock} disponível(is)`,
-        disabled: Number(book.stock) <= 0
-    }));
+    const bookOptions = books.map(book => {
+        const availableCopies = availableCopiesFor(book);
+        return {
+            value: String(book.id),
+            label: book.title,
+            description: `${book.authors || 'Autor não informado'} • ${availableCopies} exemplar(es) disponível(is)`,
+            disabled: availableCopies <= 0
+        };
+    });
 
     async function submit(data: FormData) {
         if (submitting) return;
@@ -108,7 +119,7 @@ export function LoanFormModal({ isOpen, onClose, onSubmit, customers, books }: L
                             error={Boolean(errors.bookId)} />
                     )} />
                     {errors.bookId && <p className="text-[11px] text-rose-600">{errors.bookId.message}</p>}
-                    {selectedBook && <p className="text-[11px] text-muted-foreground">Disponibilidade no catálogo: {selectedBook.stock} unidade(s).</p>}
+                    {selectedBook && <p className="text-[11px] text-muted-foreground">Exemplares disponíveis para empréstimo: {selectedBookAvailable} unidade(s).</p>}
                 </div>
 
                 <div className="space-y-1.5">

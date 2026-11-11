@@ -18,6 +18,7 @@ export function SettingsPage() {
         catalog: { status: 'idle', time: null },
         customer: { status: 'idle', time: null },
         sales: { status: 'idle', time: null },
+        loan: { status: 'idle', time: null },
         vue: { status: 'idle', time: null }
     });
 
@@ -43,6 +44,7 @@ export function SettingsPage() {
             ping('catalog', '/api/catalog/books'),
             ping('customer', '/api/customers'),
             ping('sales', '/api/sales'),
+            ping('loan', '/api/loans'),
             ping('vue', 'http://localhost:5174')
         ]);
 
@@ -129,11 +131,12 @@ export function SettingsPage() {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                         {[
                             { key: 'catalog', name: 'Catalog Service', port: '8081', endpoint: '/api/catalog/books' },
                             { key: 'customer', name: 'Customer Service', port: '8082', endpoint: '/api/customers' },
                             { key: 'sales', name: 'Sales Service', port: '8083', endpoint: '/api/sales' },
+                            { key: 'loan', name: 'Loan Service', port: '8085', endpoint: '/api/loans' },
                             { key: 'vue', name: 'Módulo Frontend Vue', port: '5174', endpoint: 'http://localhost:5174' }
                         ].map(srv => {
                             const ping = pings[srv.key];
@@ -223,6 +226,17 @@ export function SettingsPage() {
                                 <TableCell className="text-xs text-muted-foreground">sales-service (:8083)</TableCell>
                                 <TableCell className="text-xs font-mono text-muted-foreground">GraphQL Schema</TableCell>
                                 <TableCell className="text-xs text-muted-foreground">Consultas flexíveis e relatórios</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-semibold text-xs text-foreground">Empréstimos & Devoluções</TableCell>
+                                <TableCell>
+                                    <span className="inline-block text-[10px] font-mono font-medium px-2 py-0.5 rounded border border-border/80 bg-muted/30 text-muted-foreground">
+                                        REST + AMQP
+                                    </span>
+                                </TableCell>
+                                <TableCell className="text-xs text-muted-foreground">loan-service (:8085)</TableCell>
+                                <TableCell className="text-xs font-mono text-muted-foreground">JSON / HTTP & RabbitMQ</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">Controle de empréstimos e inventário</TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-semibold text-xs text-foreground">ViaCEP</TableCell>

@@ -9,7 +9,7 @@ import { LoanFormModal } from './LoanFormModal';
 import { loanService } from '../../services/loanService';
 import { bookService } from '../../services/bookService';
 import { customerService } from '../../services/customerService';
-import { Loan, Book, Customer } from '../../types';
+import { Loan, Book, BookLoanInventory, Customer } from '../../types';
 
 const columns: ColumnDefinition[] = [
     { key: 'id', label: 'ID' },
@@ -33,6 +33,7 @@ function formatLoanDate(value: string | number[] | null | undefined) {
 export function LoansPage() {
     const [loans, setLoans] = React.useState<Loan[]>([]);
     const [books, setBooks] = React.useState<Book[]>([]);
+    const [inventories, setInventories] = React.useState<BookLoanInventory[]>([]);
     const [customers, setCustomers] = React.useState<Customer[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [savingReturnId, setSavingReturnId] = React.useState<number | null>(null);
@@ -46,10 +47,14 @@ export function LoansPage() {
     const loadData = React.useCallback(async () => {
         setLoading(true);
         try {
-            const [loanData, bookData, customerData] = await Promise.all([
-                loanService.findAll(), bookService.findAll(), customerService.findAll()
+            const [loanData, inventoryData, bookData, customerData] = await Promise.all([
+                loanService.findAll(),
+                loanService.findAllInventories().catch(() => []),
+                bookService.findAll(),
+                customerService.findAll()
             ]);
             if (Array.isArray(loanData)) setLoans(loanData);
+            if (Array.isArray(inventoryData)) setInventories(inventoryData);
             if (Array.isArray(bookData)) setBooks(bookData);
             if (Array.isArray(customerData)) setCustomers(customerData);
         } catch (error) {
@@ -70,12 +75,16 @@ export function LoansPage() {
         return books.find(book => book.id === id)?.title || `Livro #${id}`;
     }
 
+    async function refreshInventories() {
+        const updatedInventories = await loanService.findAllInventories().catch(() => null);
+        if (Array.isArray(updatedInventories)) setInventories(updatedInventories);
+    }
+
     async function handleCreate(data: { customerId: number; bookId: number; dueDate: string }) {
         try {
             const created = await loanService.create(data);
             setLoans(previous => [created, ...previous]);
-            const updatedBooks = await bookService.findAll();
-            if (Array.isArray(updatedBooks)) setBooks(updatedBooks);
+            await refreshInventories();
             showNotice('Empréstimo registrado com sucesso.', 'success');
             return true;
         } catch (error) {
@@ -91,8 +100,7 @@ export function LoansPage() {
         try {
             const updated = await loanService.returnLoan(loan.id);
             setLoans(previous => previous.map(item => item.id === loan.id ? (updated || { ...item, status: 'RETURNED', returnDate: new Date().toISOString().slice(0, 10) }) : item));
-            const updatedBooks = await bookService.findAll();
-            if (Array.isArray(updatedBooks)) setBooks(updatedBooks);
+            await refreshInventories();
             showNotice('Devolução registrada com sucesso.', 'success');
         } catch (error) {
             console.error('Falha ao registrar devolução', error);
@@ -174,7 +182,7 @@ export function LoansPage() {
                 )}
             </RecordsTableLayout>
             <LoanFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}
-                onSubmit={handleCreate} customers={customers} books={books} />
+                onSubmit={handleCreate} customers={customers} books={books} inventories={inventories} />
         </div>
     );
 }
