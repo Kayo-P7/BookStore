@@ -45,6 +45,14 @@
       "destination": "https://bookstore-sales.onrender.com/api/sales"
     },
     {
+      "source": "/api/loans/:match*",
+      "destination": "https://bookstore-loans.onrender.com/api/loans/:match*"
+    },
+    {
+      "source": "/api/loans",
+      "destination": "https://bookstore-loans.onrender.com/api/loans"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

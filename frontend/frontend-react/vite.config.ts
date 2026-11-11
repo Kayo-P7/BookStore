@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
     const catalogUrl = env.CATALOG_URL || `http://localhost:${env.CATALOG_SERVICE_PORT || 8081}`;
     const customerUrl = env.CUSTOMER_URL || `http://localhost:${env.CUSTOMER_SERVICE_PORT || 8082}`;
     const salesUrl = `http://localhost:${env.SALES_SERVICE_PORT || 8083}`;
+    const loanUrl = env.LOAN_URL || `http://localhost:${env.LOAN_SERVICE_PORT || 8085}`;
 
     return {
         plugins: [
@@ -62,6 +63,10 @@ export default defineConfig(({ mode }) => {
                     },
                     '/api/sales': {
                         target: salesUrl,
+                        changeOrigin: true
+                    },
+                    '/api/loans': {
+                        target: loanUrl,
                         changeOrigin: true
                     }
                 }
