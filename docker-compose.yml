@@ -35,11 +35,18 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
       CATALOG_SERVICE_PORT: ${CATALOG_SERVICE_PORT}
       JWT_SECRET: ${JWT_SECRET}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: bookstore
+      SPRING_RABBITMQ_PASSWORD: bookstore123
+      RABBITMQ_HEALTH_ENABLED: "true"
     ports:
       - "${CATALOG_SERVICE_PORT}:${CATALOG_SERVICE_PORT}"
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
 
   customer-service:
     build:
@@ -92,10 +99,12 @@ services:
       LOAN_SERVICE_PORT: ${LOAN_SERVICE_PORT:-8085}
       JWT_SECRET: ${JWT_SECRET}
       CATALOG_SERVICE_URL: http://catalog-service:8081
+      CUSTOMER_SERVICE_URL: http://customer-service:8082
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: bookstore
       SPRING_RABBITMQ_PASSWORD: bookstore123
+      RABBITMQ_HEALTH_ENABLED: "true"
     ports:
       - "${LOAN_SERVICE_PORT:-8085}:${LOAN_SERVICE_PORT:-8085}"
     depends_on:
@@ -104,6 +113,8 @@ services:
       rabbitmq:
         condition: service_started
       catalog-service:
+        condition: service_started
+      customer-service:
         condition: service_started
   gateway:
     image: nginx:1.27-alpine
