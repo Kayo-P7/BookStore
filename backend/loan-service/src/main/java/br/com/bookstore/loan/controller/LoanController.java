@@ -1,7 +1,10 @@
+
 package br.com.bookstore.loan.controller;
 
+import br.com.bookstore.loan.dto.BookLoanInventoryRequestDTO;
 import br.com.bookstore.loan.dto.LoanRequestDTO;
 import br.com.bookstore.loan.dto.LoanResponseDTO;
+import br.com.bookstore.loan.model.BookLoanInventory;
 import br.com.bookstore.loan.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -28,5 +31,13 @@ public class LoanController {
     @PutMapping("/{loanId}/return")
     public LoanResponseDTO returnLoan(@PathVariable Long loanId) {
         return loanService.returnLoan(loanId);
+    }
+
+    @PostMapping("/inventory")
+    @ResponseStatus(HttpStatus.CREATED)
+    public BookLoanInventory registerInventory(
+            @Valid @RequestBody BookLoanInventoryRequestDTO request
+    ) {
+        return loanService.registerInventory(request);
     }
 }

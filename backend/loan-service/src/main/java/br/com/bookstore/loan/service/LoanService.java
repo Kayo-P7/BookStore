@@ -10,9 +10,10 @@ import br.com.bookstore.loan.repository.BookLoanInventoryRepository;
 import br.com.bookstore.loan.repository.LoanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import br.com.bookstore.loan.dto.BookLoanInventoryRequestDTO;
 import java.time.LocalDate;
-
+import br.com.bookstore.loan.dto.BookLoanInventoryRequestDTO;
+import br.com.bookstore.loan.model.BookLoanInventory;
 @Service
 public class LoanService {
 
@@ -96,5 +97,22 @@ public class LoanService {
                 loan.getReturnDate(),
                 loan.getStatus()
         );
+    }
+
+    @Transactional
+    public BookLoanInventory registerInventory(BookLoanInventoryRequestDTO request) {
+
+        if (inventoryRepository.existsByBookId(request.bookId())) {
+            throw new IllegalStateException("Inventory already registered for this book");
+        }
+
+        BookLoanInventory inventory = new BookLoanInventory();
+
+        inventory.setBookId(request.bookId());
+        inventory.setTotalCopies(request.totalCopies());
+        inventory.setAvailableCopies(request.totalCopies());
+        inventory.setBorrowedCopies(0);
+
+        return inventoryRepository.save(inventory);
     }
 }
