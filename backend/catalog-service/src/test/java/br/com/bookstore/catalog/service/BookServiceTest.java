@@ -30,6 +30,9 @@ class BookServiceTest {
     @Mock
     private BookMapper mapper;
 
+    @Mock
+    private CatalogEventPublisher eventPublisher;
+
     @InjectMocks
     private BookService service;
 
@@ -83,6 +86,7 @@ class BookServiceTest {
         assertNotNull(response);
         assertEquals("9780134757599", response.isbn());
         verify(repo).save(sampleBook);
+        verify(eventPublisher).publishBookCreated(1L, 10);
     }
 
     @Test
@@ -96,6 +100,7 @@ class BookServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> service.save(request));
         verify(repo, never()).save(any());
+        verifyNoInteractions(eventPublisher);
     }
 
     @Test

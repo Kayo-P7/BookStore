@@ -1,0 +1,42 @@
+package br.com.bookstore.catalog.config;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
+import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+// configuracao de exchange, fila e serializacao json para eventos do catalogo
+@Configuration
+public class RabbitMQConfig {
+
+    public static final String BOOKSTORE_EVENTS_EXCHANGE = "bookstore.events";
+    public static final String BOOK_CREATED_QUEUE = "book.created.queue";
+    public static final String BOOK_CREATED_ROUTING_KEY = "book.created";
+
+    @Bean
+    public TopicExchange bookstoreEventsExchange() {
+        return new TopicExchange(BOOKSTORE_EVENTS_EXCHANGE, true, false);
+    }
+
+    @Bean
+    public Queue bookCreatedQueue() {
+        return new Queue(BOOK_CREATED_QUEUE, true);
+    }
+
+    @Bean
+    public Binding bookCreatedBinding(Queue bookCreatedQueue, TopicExchange bookstoreEventsExchange) {
+        return BindingBuilder.bind(bookCreatedQueue)
+                .to(bookstoreEventsExchange)
+                .with(BOOK_CREATED_ROUTING_KEY);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter(ObjectMapper objectMapper) {
+        return new Jackson2JsonMessageConverter(objectMapper);
+    }
+}

@@ -16,10 +16,12 @@ public class BookService {
 
     private final BookRepository repo;
     private final BookMapper mapper;
+    private final CatalogEventPublisher eventPublisher;
 
-    public BookService(BookRepository repo, BookMapper mapper) {
+    public BookService(BookRepository repo, BookMapper mapper, CatalogEventPublisher eventPublisher) {
         this.repo = repo;
         this.mapper = mapper;
+        this.eventPublisher = eventPublisher;
     }
 
     // retorna todos os livros cadastrados em formato de resposta
@@ -44,7 +46,9 @@ public class BookService {
             throw new IllegalArgumentException("ISBN ja cadastrado para outro livro: " + request.isbn());
         }
         Book book = mapper.toEntity(request);
-        return mapper.toResponse(repo.save(book));
+        Book saved = repo.save(book);
+        eventPublisher.publishBookCreated(saved.getId(), saved.getStock());
+        return mapper.toResponse(saved);
     }
 
     // atualiza livro existente preservando seu identificador e validando isbn
