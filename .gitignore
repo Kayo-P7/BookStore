@@ -7,7 +7,3 @@ dist/
 .DS_Store
 logs/
 *.log
-
-# Arquivos adicionados acidentalmente
-/react
-/react-router-dom
