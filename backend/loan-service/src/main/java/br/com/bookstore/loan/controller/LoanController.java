@@ -9,7 +9,7 @@ import br.com.bookstore.loan.service.LoanService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
+import java.util.List;
 @RestController
 @RequestMapping("/api/loans")
 public class LoanController {
@@ -39,5 +39,17 @@ public class LoanController {
             @Valid @RequestBody BookLoanInventoryRequestDTO request
     ) {
         return loanService.registerInventory(request);
+    }
+
+    @GetMapping
+    public List<LoanResponseDTO> findAllLoans() {
+        return loanService.findAllLoans();
+    }
+
+    @GetMapping("/{loanId}")
+    public LoanResponseDTO findLoanById(
+            @PathVariable Long loanId
+    ) {
+        return loanService.findLoanById(loanId);
     }
 }

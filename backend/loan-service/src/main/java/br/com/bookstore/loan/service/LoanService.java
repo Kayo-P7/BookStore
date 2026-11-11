@@ -1,6 +1,8 @@
 
 package br.com.bookstore.loan.service;
 
+import br.com.bookstore.loan.client.CatalogClient;
+import br.com.bookstore.loan.dto.BookLoanInventoryRequestDTO;
 import br.com.bookstore.loan.dto.LoanRequestDTO;
 import br.com.bookstore.loan.dto.LoanResponseDTO;
 import br.com.bookstore.loan.model.BookLoanInventory;
@@ -10,26 +12,30 @@ import br.com.bookstore.loan.repository.BookLoanInventoryRepository;
 import br.com.bookstore.loan.repository.LoanRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import br.com.bookstore.loan.dto.BookLoanInventoryRequestDTO;
+import java.util.List;
 import java.time.LocalDate;
-import br.com.bookstore.loan.dto.BookLoanInventoryRequestDTO;
-import br.com.bookstore.loan.model.BookLoanInventory;
+
 @Service
 public class LoanService {
 
     private final LoanRepository loanRepository;
     private final BookLoanInventoryRepository inventoryRepository;
+    private final CatalogClient catalogClient;
 
     public LoanService(
             LoanRepository loanRepository,
-            BookLoanInventoryRepository inventoryRepository
+            BookLoanInventoryRepository inventoryRepository,
+            CatalogClient catalogClient
     ) {
         this.loanRepository = loanRepository;
         this.inventoryRepository = inventoryRepository;
+        this.catalogClient = catalogClient;
     }
 
     @Transactional
     public LoanResponseDTO createLoan(LoanRequestDTO request) {
+
+        catalogClient.validateBookExists(request.bookId());
 
         BookLoanInventory inventory = inventoryRepository
                 .findByBookId(request.bookId())
@@ -100,10 +106,16 @@ public class LoanService {
     }
 
     @Transactional
-    public BookLoanInventory registerInventory(BookLoanInventoryRequestDTO request) {
+    public BookLoanInventory registerInventory(
+            BookLoanInventoryRequestDTO request
+    ) {
+
+        catalogClient.validateBookExists(request.bookId());
 
         if (inventoryRepository.existsByBookId(request.bookId())) {
-            throw new IllegalStateException("Inventory already registered for this book");
+            throw new IllegalStateException(
+                    "Inventory already registered for this book"
+            );
         }
 
         BookLoanInventory inventory = new BookLoanInventory();
@@ -114,5 +126,23 @@ public class LoanService {
         inventory.setBorrowedCopies(0);
 
         return inventoryRepository.save(inventory);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LoanResponseDTO> findAllLoans() {
+        return loanRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public LoanResponseDTO findLoanById(Long loanId) {
+        Loan loan = loanRepository.findById(loanId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Loan not found")
+                );
+
+        return toResponse(loan);
     }
 }

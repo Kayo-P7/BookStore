@@ -35,3 +35,7 @@ management:
     health:
       probes:
         enabled: true
+
+services:
+  catalog:
+    base-url: ${CATALOG_SERVICE_URL:http://localhost:8081}
