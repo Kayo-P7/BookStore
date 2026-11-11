@@ -7,6 +7,19 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
       </profile>
+      <profile name="Annotation profile for bookstore-parent" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.6.3/mapstruct-processor-1.6.3.jar" />
+        </processorPath>
+        <module name="sales-service" />
+        <module name="security-common" />
+        <module name="customer-service" />
+        <module name="catalog-service" />
+        <module name="loan-service" />
+      </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
@@ -14,7 +27,9 @@
       <module name="bookstore-parent" options="-parameters" />
       <module name="catalog-service" options="-parameters" />
       <module name="customer-service" options="-parameters" />
+      <module name="loan-service" options="-parameters" />
       <module name="sales-service" options="-parameters" />
+      <module name="security-common" options="-parameters" />
     </option>
   </component>
 </project>

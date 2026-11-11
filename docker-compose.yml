@@ -82,6 +82,29 @@ services:
       - catalog-service
       - customer-service
 
+  loan-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.service
+      args:
+        MODULE: loan-service
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      LOAN_SERVICE_PORT: ${LOAN_SERVICE_PORT}
+      JWT_SECRET: ${JWT_SECRET}
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: bookstore
+      SPRING_RABBITMQ_PASSWORD: bookstore123
+    ports:
+      - "${LOAN_SERVICE_PORT}:${LOAN_SERVICE_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
   gateway:
     image: nginx:1.27-alpine
     ports:
@@ -92,6 +115,7 @@ services:
       - catalog-service
       - customer-service
       - sales-service
+      - loan-service
 
   react-frontend:
     build: ./frontend/frontend-react
