@@ -12,5 +12,5 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 ARG MODULE
 COPY --from=build /workspace/${MODULE}/target/${MODULE}-1.0.0.jar app.jar
-EXPOSE 8081 8082 8083
+EXPOSE 8081 8082 8083 8085
 ENTRYPOINT ["java","-XX:MaxRAMPercentage=75.0","-jar","/app/app.jar"]

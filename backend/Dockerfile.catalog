@@ -5,6 +5,7 @@ COPY security-common security-common
 COPY catalog-service catalog-service
 COPY customer-service customer-service
 COPY sales-service sales-service
+COPY loan-service loan-service
 RUN mvn -q -pl catalog-service -am clean package -DskipTests
 FROM eclipse-temurin:21-jre
 WORKDIR /app
