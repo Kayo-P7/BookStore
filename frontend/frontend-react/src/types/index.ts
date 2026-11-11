@@ -104,3 +104,21 @@ export interface AuthResponse {
     role: UserRole;
     mustChangePassword?: boolean;
 }
+
+export type LoanStatus = 'ACTIVE' | 'RETURNED' | 'CANCELLED';
+
+export interface Loan {
+    id: number;
+    bookId: number;
+    customerId: number;
+    loanDate: string | number[];
+    dueDate: string | number[];
+    returnDate: string | number[] | null;
+    status: LoanStatus;
+}
+
+export interface LoanRequest {
+    bookId: number;
+    customerId: number;
+    dueDate: string;
+}

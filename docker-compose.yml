@@ -125,7 +125,7 @@ services:
     ports:
       - "${REACT_PORT}:5173"
     environment:
-      - GATEWAY_URL=${GATEWAY_URL}
+      - GATEWAY_URL=http://gateway
       - REACT_PORT=${REACT_PORT}
     volumes:
       - ./frontend/frontend-react:/app

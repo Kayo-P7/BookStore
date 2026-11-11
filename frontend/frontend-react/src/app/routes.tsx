@@ -7,6 +7,7 @@ import { DashboardPage } from '../modules/dashboard/DashboardPage';
 import { BooksPage } from '../modules/books/BooksPage';
 import { CustomersPage } from '../modules/customers/CustomersPage';
 import { SalesPage } from '../modules/sales/SalesPage';
+import { LoansPage } from '../modules/loans/LoansPage';
 import { ServicesPage } from '../modules/services/ServicesPage';
 import { SettingsPage } from '../modules/settings/SettingsPage';
 import { UsersPage } from '../modules/users/UsersPage';
@@ -48,6 +49,7 @@ export function AppRoutes() {
                 <Route path="books" element={<Navigate to="/catalog" replace />} />
                 <Route path="customers" element={<CustomersPage />} />
                 <Route path="sales" element={<SalesPage />} />
+                <Route path="loans" element={<LoansPage />} />
                 <Route path="logistics" element={<ServicesPage />} />
                 <Route path="services" element={<Navigate to="/logistics" replace />} />
                 <Route path="users" element={

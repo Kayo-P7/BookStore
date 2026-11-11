@@ -5,6 +5,7 @@ import {
     BookOpen,
     Users,
     ShoppingBag,
+    BookMarked,
     MapPin,
     Settings,
     UserCog,
@@ -45,6 +46,12 @@ export function Sidebar({
             label: 'Clientes',
             description: 'Base de clientes e contatos',
             icon: Users
+        },
+        {
+            to: '/loans',
+            label: 'Empréstimos',
+            description: 'Controle de empréstimos e devoluções',
+            icon: BookMarked
         },
         {
             to: '/sales',
