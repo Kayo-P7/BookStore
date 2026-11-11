@@ -1,13 +1,10 @@
 services:
   postgres:
-
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-
-
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
@@ -92,7 +89,7 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
-      LOAN_SERVICE_PORT: ${LOAN_SERVICE_PORT}
+      LOAN_SERVICE_PORT: ${LOAN_SERVICE_PORT:-8085}
       JWT_SECRET: ${JWT_SECRET}
       CATALOG_SERVICE_URL: http://catalog-service:8081
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -100,7 +97,7 @@ services:
       SPRING_RABBITMQ_USERNAME: bookstore
       SPRING_RABBITMQ_PASSWORD: bookstore123
     ports:
-      - "${LOAN_SERVICE_PORT}:${LOAN_SERVICE_PORT}"
+      - "${LOAN_SERVICE_PORT:-8085}:${LOAN_SERVICE_PORT:-8085}"
     depends_on:
       postgres:
         condition: service_healthy
