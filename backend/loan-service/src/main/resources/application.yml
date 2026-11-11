@@ -26,6 +26,17 @@ spring:
     table: flyway_loan_history
     locations: classpath:db/migration
 
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:bookstore}
+    password: ${SPRING_RABBITMQ_PASSWORD:bookstore123}
+    connection-timeout: 3000
+    listener:
+      simple:
+        missing-queues-fatal: false
+        recovery-interval: 10000
+
 management:
   endpoints:
     web:
@@ -35,7 +46,12 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    rabbit:
+      enabled: ${RABBITMQ_HEALTH_ENABLED:false}
 
 services:
   catalog:
-    base-url: ${CATALOG_SERVICE_URL:http://localhost:8081}
+    base-url: ${CATALOG_SERVICE_URL:${CATALOG_URL:http://localhost:8081}}
+  customer:
+    base-url: ${CUSTOMER_SERVICE_URL:${CUSTOMER_URL:http://localhost:8082}}
