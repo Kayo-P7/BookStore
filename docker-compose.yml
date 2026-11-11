@@ -1,10 +1,13 @@
 services:
   postgres:
+
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+
     ports:
       - "${POSTGRES_PORT}:5432"
     volumes:
@@ -15,6 +18,14 @@ services:
       timeout: 5s
       retries: 20
 
+  rabbitmq:
+    image: rabbitmq:4-management
+    environment:
+      RABBITMQ_DEFAULT_USER: bookstore
+      RABBITMQ_DEFAULT_PASS: bookstore123
+    ports:
+      - "5672:5672"
+      - "15672:15672"
   catalog-service:
     build:
       context: ./backend
