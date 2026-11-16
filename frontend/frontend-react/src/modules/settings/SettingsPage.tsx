@@ -5,6 +5,7 @@ import { Button } from '../../components/ui/button';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { useScreenNotice } from '../../components/ui/screen-notice';
 import { cn } from '../../components/ui/button';
+import { getVueUrl } from '../../utils/vueUrl';
 
 interface ServicePing {
     status: 'idle' | 'online' | 'offline';
@@ -40,12 +41,14 @@ export function SettingsPage() {
             }
         }
 
+        const vueUrl = getVueUrl();
+
         await Promise.allSettled([
             ping('catalog', '/api/catalog/books'),
             ping('customer', '/api/customers'),
             ping('sales', '/api/sales'),
             ping('loan', '/api/loans'),
-            ping('vue', 'http://localhost:5174')
+            ping('vue', vueUrl)
         ]);
 
         const hasOffline = Object.values(results).some(r => r.status === 'offline');
@@ -137,7 +140,7 @@ export function SettingsPage() {
                             { key: 'customer', name: 'Customer Service', port: '8082', endpoint: '/api/customers' },
                             { key: 'sales', name: 'Sales Service', port: '8083', endpoint: '/api/sales' },
                             { key: 'loan', name: 'Loan Service', port: '8085', endpoint: '/api/loans' },
-                            { key: 'vue', name: 'Módulo Frontend Vue', port: '5174', endpoint: 'http://localhost:5174' }
+                            { key: 'vue', name: 'Módulo Frontend Vue', port: getVueUrl().split(':').pop()?.replace('/', '') || '8090', endpoint: getVueUrl() }
                         ].map(srv => {
                             const ping = pings[srv.key];
                             return (

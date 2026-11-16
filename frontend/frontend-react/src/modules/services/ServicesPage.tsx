@@ -3,11 +3,12 @@ import { RefreshCw, ExternalLink, MapPin } from 'lucide-react';
 import { Card, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { useTheme } from '../../context/ThemeContext';
+import { getVueUrl } from '../../utils/vueUrl';
 
 export function ServicesPage() {
     const { theme } = useTheme();
     const [iframeKey, setIframeKey] = React.useState(Date.now());
-    const vueUrl = 'http://localhost:5174';
+    const vueUrl = getVueUrl();
 
     function handleReload() {
         setIframeKey(Date.now());
