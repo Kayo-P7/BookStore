@@ -15,7 +15,7 @@ export function NotFoundPage() {
                     <BookX className="w-8 h-8 stroke-[1.8]" />
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-[#059669] bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md mb-3">
+                <div className="text-xs font-mono font-semibold text-[#059669] mb-2">
                     Erro 404 • Página Não Encontrada
                 </div>
 

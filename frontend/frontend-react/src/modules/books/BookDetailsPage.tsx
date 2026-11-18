@@ -143,17 +143,16 @@ export function BookDetailsPage() {
                         {/* cabecalho com status, titulo, autor e preco */}
                         <div className="p-6 sm:p-8 border-b border-[#f0f0f0] flex flex-col sm:flex-row sm:items-start justify-between gap-6">
                             <div className="space-y-3 flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
+                                <div className="flex items-center gap-2.5 flex-wrap">
                                     <span
-                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold border ${
-                                            inStock
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+                                        className={`text-xs font-semibold ${
+                                            inStock ? 'text-emerald-600' : 'text-[#737373]'
                                         }`}
                                     >
                                         {inStock ? 'Disponível em estoque' : 'Esgotado'}
                                     </span>
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-mono text-[#737373] bg-[#fafafa] border border-[#e5e5e5]">
+                                    <span className="text-xs text-[#d4d4d4]">•</span>
+                                    <span className="inline-flex items-center gap-0.5 text-xs font-mono text-[#737373]">
                                         <Hash className="w-3 h-3" />
                                         {book.id}
                                     </span>

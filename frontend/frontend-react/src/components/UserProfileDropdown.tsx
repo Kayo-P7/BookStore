@@ -76,19 +76,12 @@ export function UserProfileDropdown() {
                                     {initials}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1.5 mb-1">
+                                    <div className="flex items-center gap-1.5 mb-0.5">
                                         <span className="text-xs font-bold text-[#171717] truncate">
                                             {user.name}
                                         </span>
-                                        <span
-                                            className={cn(
-                                                'text-[10px] font-medium px-2 py-0.5 rounded-md',
-                                                isAdmin
-                                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                                    : 'bg-teal-50 text-teal-700 border border-teal-200'
-                                            )}
-                                        >
-                                            {roleName}
+                                        <span className="text-[11px] font-semibold text-emerald-600 shrink-0">
+                                            • {roleName}
                                         </span>
                                     </div>
                                     <p className="text-[11px] text-[#737373] truncate">

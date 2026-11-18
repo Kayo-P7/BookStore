@@ -318,7 +318,7 @@ export function DashboardPage() {
                                                 {formatShortDate(loan.dueDate)}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <span className="inline-flex items-center rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                                                <span className="text-xs font-semibold text-emerald-600">
                                                     Ativo
                                                 </span>
                                             </TableCell>

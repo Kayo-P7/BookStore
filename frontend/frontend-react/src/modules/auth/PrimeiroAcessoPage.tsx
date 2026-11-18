@@ -100,7 +100,7 @@ export function PrimeiroAcessoPage() {
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-600/20 mb-3.5 ring-4 ring-emerald-500/10">
                             <KeyRound className="w-7 h-7" />
                         </div>
-                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 mb-2">
+                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 mb-2">
                             <ShieldCheck className="w-3.5 h-3.5" />
                             <span>Primeiro Acesso • Segurança Operacional</span>
                         </div>

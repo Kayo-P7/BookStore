@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Edit2, Trash2, ShieldCheck, UserCheck, UserX, Power } from 'lucide-react';
+import { Edit2, Trash2, Power } from 'lucide-react';
 import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTableLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
@@ -335,8 +335,8 @@ export function UsersPage() {
                                                                 {user.name}
                                                             </span>
                                                             {isSelf && (
-                                                                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.2 rounded border border-emerald-200">
-                                                                    Você
+                                                                <span className="text-[11px] font-semibold text-emerald-600">
+                                                                    • Você
                                                                 </span>
                                                             )}
                                                         </div>
@@ -348,41 +348,23 @@ export function UsersPage() {
                                             </TableCell>
                                         )}
 
-                                        {/* perfil de acesso */}
+                                        {/* perfil de acesso somente com tipografia verde sem efeito pilula */}
                                         {visibleColumns.includes('role') && (
                                             <TableCell>
-                                                <span
-                                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border ${
-                                                        isAdmin
-                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                            : 'bg-teal-50 text-teal-700 border-teal-200'
-                                                    }`}
-                                                >
-                                                    {isAdmin ? (
-                                                        <ShieldCheck className="w-3 h-3" />
-                                                    ) : (
-                                                        <UserCheck className="w-3 h-3" />
-                                                    )}
+                                                <span className="text-xs font-semibold text-emerald-600">
                                                     {isAdmin ? 'Administrador' : 'Vendedor'}
                                                 </span>
                                             </TableCell>
                                         )}
 
-                                        {/* status ativo / inativo */}
+                                        {/* status ativo (verde) / inativo (cinza) sem caixa nem ponto */}
                                         {visibleColumns.includes('status') && (
                                             <TableCell>
                                                 <span
-                                                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-medium ${
-                                                        user.active
-                                                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                                                            : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+                                                    className={`text-xs font-semibold ${
+                                                        user.active ? 'text-emerald-600' : 'text-[#737373]'
                                                     }`}
                                                 >
-                                                    <span
-                                                        className={`w-1.5 h-1.5 rounded-full ${
-                                                            user.active ? 'bg-emerald-600' : 'bg-zinc-400'
-                                                        }`}
-                                                    />
                                                     {user.active ? 'Ativo' : 'Inativo'}
                                                 </span>
                                             </TableCell>

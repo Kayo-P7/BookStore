@@ -310,13 +310,11 @@ export function UserFormModal({
                                     </span>
                                     <span
                                         className={cn(
-                                            'text-[10px] font-semibold px-2 py-0.5 rounded-md border transition-colors',
-                                            isActive
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                : 'bg-zinc-100 text-zinc-600 border-zinc-200'
+                                            'text-xs font-semibold transition-colors',
+                                            isActive ? 'text-emerald-600' : 'text-[#737373]'
                                         )}
                                     >
-                                        {isActive ? 'Ativo' : 'Inativo'}
+                                        • {isActive ? 'Ativo' : 'Inativo'}
                                     </span>
                                 </div>
                                 <p className="text-[11px] text-[#737373]">
