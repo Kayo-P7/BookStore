@@ -1,25 +1,58 @@
 package br.com.bookstore.catalog.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
+
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 // servico de integracao externa com a api do google books com fallback resiliente
 @Service
 public class GoogleBooksService {
-    private final RestClient googleClient = RestClient.create("https://www.googleapis.com");
-    private final RestClient openLibraryClient = RestClient.create("https://openlibrary.org");
+
+    private static final int MAX_CACHE_ENTRIES = 256;
+    private static final long CACHE_TTL_MS = Duration.ofMinutes(30).toMillis();
+
+    private record CacheEntry(Map<?, ?> value, long expiresAt) {}
+
+    // shortcut: cache local ate 256 termos por instancia, migrar para redis se escalar multiplas replicas
+    private final ConcurrentHashMap<String, CacheEntry> searchCache = new ConcurrentHashMap<>();
+    private final RestClient googleClient = buildExternalClient("https://www.googleapis.com");
+    private final RestClient openLibraryClient = buildExternalClient("https://openlibrary.org");
 
     @Value("${google.books.api.key:}")
     private String apiKey;
 
-    // consulta volumes de livros na api externa a partir do termo informado com resiliencia
+    private static RestClient buildExternalClient(String baseUrl) {
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(2))
+                .build();
+        JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(Duration.ofSeconds(4));
+        return RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(factory)
+                .build();
+    }
+
+    // consulta volumes de livros na api externa a partir do termo informado com cache e resiliencia
     public Map search(String q) {
         if (q == null || q.trim().isEmpty()) {
             return Map.of("items", List.of(), "totalItems", 0);
         }
 
+        String normalizedKey = q.trim().toLowerCase(Locale.ROOT);
+        long now = System.currentTimeMillis();
+        CacheEntry cached = searchCache.get(normalizedKey);
+        if (cached != null && cached.expiresAt() > now) {
+            return cached.value();
+        }
+
+        Map result = null;
         try {
             String uri = (apiKey != null && !apiKey.isBlank())
                     ? "/books/v1/volumes?q={q}&key={key}"
@@ -33,13 +66,27 @@ public class GoogleBooksService {
             }
 
             if (response != null && response.containsKey("items")) {
-                return response;
+                result = response;
             }
         } catch (Exception e) {
             // em caso de cota de ip excedida (429) ou erro externo, utiliza fallback para open library
         }
 
-        return searchOpenLibraryFallback(q.trim());
+        if (result == null) {
+            result = searchOpenLibraryFallback(q.trim());
+        }
+
+        if (result.get("items") instanceof List<?> list && !list.isEmpty()) {
+            if (searchCache.size() >= MAX_CACHE_ENTRIES) {
+                searchCache.entrySet().removeIf(entry -> entry.getValue().expiresAt() <= now);
+                if (searchCache.size() >= MAX_CACHE_ENTRIES) {
+                    searchCache.clear();
+                }
+            }
+            searchCache.put(normalizedKey, new CacheEntry(result, now + CACHE_TTL_MS));
+        }
+
+        return result;
     }
 
     @SuppressWarnings("unchecked")

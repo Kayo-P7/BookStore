@@ -3,6 +3,8 @@ package br.com.bookstore.catalog.controller;
 import br.com.bookstore.catalog.dto.BookRequest;
 import br.com.bookstore.catalog.dto.BookResponse;
 import br.com.bookstore.catalog.service.BookService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -21,10 +23,15 @@ public class GraphQlController {
         this.service = service;
     }
 
-    // consulta graphql para listar todos os livros
+    // consulta graphql para listar livros com paginacao opcional
     @QueryMapping
-    public List<BookResponse> books() {
-        return service.findAll();
+    public List<BookResponse> books(@Argument Integer page, @Argument Integer size) {
+        if (page == null && size == null) {
+            return service.findAll();
+        }
+        int safePage = Math.max(page != null ? page : 0, 0);
+        int safeSize = Math.clamp(size != null ? size : 20, 1, 200);
+        return service.findPage(PageRequest.of(safePage, safeSize, Sort.by("id").descending())).getContent();
     }
 
     // consulta graphql para buscar livros por titulo

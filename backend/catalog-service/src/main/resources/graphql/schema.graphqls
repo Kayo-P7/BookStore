@@ -9,7 +9,7 @@ type Book {
  stock: Int
 }
 type Query {
- books: [Book!]!
+ books(page: Int, size: Int): [Book!]!
  book(id: ID!): Book
  searchBooks(title: String!): [Book!]!
 }

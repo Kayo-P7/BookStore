@@ -3,7 +3,13 @@ package br.com.bookstore.catalog.controller;
 import br.com.bookstore.catalog.dto.BookRequest;
 import br.com.bookstore.catalog.dto.BookResponse;
 import br.com.bookstore.catalog.service.BookService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,10 +29,27 @@ public class BookController {
         this.service = service;
     }
 
-    // lista todos os livros disponiveis
+    // lista livros com suporte opcional a paginacao mantendo compatibilidade retroativa
     @GetMapping
-    public List<BookResponse> all() {
-        return service.findAll();
+    public List<BookResponse> all(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            HttpServletResponse response
+    ) {
+        if (page == null && size == null) {
+            return service.findAll();
+        }
+        Page<BookResponse> result = service.findPage(
+                PageRequest.of(Math.max(page != null ? page : 0, 0), Math.clamp(size != null ? size : 20, 1, 200), Sort.by("id").descending())
+        );
+        response.setHeader("X-Total-Count", String.valueOf(result.getTotalElements()));
+        return result.getContent();
+    }
+
+    // retorna envelope paginado completo para clientes com paginacao no servidor
+    @GetMapping("/paged")
+    public Page<BookResponse> paged(@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return service.findPage(pageable);
     }
 
     // busca dados de um livro especifico por id

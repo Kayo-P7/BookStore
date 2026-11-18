@@ -104,10 +104,11 @@ class BookServiceTest {
     }
 
     @Test
-    @DisplayName("deve decrementar estoque com sucesso")
+    @DisplayName("deve decrementar estoque com sucesso de forma atomica")
     void shouldDecreaseStockSuccessfully() {
+        sampleBook.setStock(8);
+        when(repo.decrementStockIfAvailable(1L, 2)).thenReturn(1);
         when(repo.findById(1L)).thenReturn(Optional.of(sampleBook));
-        when(repo.save(any(Book.class))).thenReturn(sampleBook);
         when(mapper.toResponse(sampleBook)).thenReturn(
                 new BookResponse(1L, "Refactoring", "Martin Fowler", "9780134757599", "Addison-Wesley", "desc", new BigDecimal("150.00"), 8)
         );
@@ -115,13 +116,14 @@ class BookServiceTest {
         BookResponse response = service.decreaseStock(1L, 2);
 
         assertNotNull(response);
-        assertEquals(8, sampleBook.getStock());
-        verify(repo).save(sampleBook);
+        assertEquals(8, response.stock());
+        verify(repo).decrementStockIfAvailable(1L, 2);
     }
 
     @Test
     @DisplayName("deve lancar excecao ao tentar decrementar estoque insuficiente")
     void shouldThrowExceptionWhenStockIsInsufficient() {
+        when(repo.decrementStockIfAvailable(1L, 20)).thenReturn(0);
         when(repo.findById(1L)).thenReturn(Optional.of(sampleBook));
 
         assertThrows(IllegalStateException.class, () -> service.decreaseStock(1L, 20));
