@@ -15,7 +15,7 @@ export function NotFoundPage() {
                     <BookX className="w-8 h-8 stroke-[1.8]" />
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-[#059669] bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-full mb-3">
+                <div className="inline-flex items-center gap-1.5 text-xs font-mono font-semibold text-[#059669] bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 rounded-md mb-3">
                     Erro 404 • Página Não Encontrada
                 </div>
 
@@ -97,9 +97,9 @@ export function NotFoundPage() {
                 <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-2xs">
                     <BookOpen className="w-3.5 h-3.5" />
                 </div>
-                <span className="font-semibold text-[#171717]">BookStore OS</span>
+                <span className="font-semibold text-[#171717]">BookStore</span>
                 <span>•</span>
-                <span>Plataforma de Gestão de Livraria</span>
+                <span>Sistema de gestão de livraria</span>
             </div>
         </div>
     );

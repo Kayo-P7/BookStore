@@ -6,7 +6,7 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 import { Modal } from '../../components/ui/modal';
 import { Button } from '../../components/ui/button';
 import { CustomSelect } from '../../components/ui/select';
-import { Input } from '../../components/ui/input';
+import { DatePicker } from '../../components/ui/date-picker';
 import { Book, BookLoanInventory, Customer } from '../../types';
 
 const schema = z.object({
@@ -125,9 +125,17 @@ export function LoanFormModal({ isOpen, onClose, onSubmit, customers, books, inv
                 <div className="space-y-1.5">
                     <label className="text-xs font-medium text-foreground/80">Previsão de devolução</label>
                     <Controller name="dueDate" control={control} render={({ field }) => (
-                        <Input type="date" min={localDateString(new Date())} {...field}
-                            onChange={event => { field.onChange(event); clearErrors('dueDate'); setFormError(null); }}
-                            error={Boolean(errors.dueDate)} />
+                        <DatePicker
+                            value={field.value}
+                            minDate={localDateString(new Date())}
+                            placeholder="Selecione a data de devolução"
+                            onChange={isoDate => {
+                                field.onChange(isoDate);
+                                clearErrors('dueDate');
+                                setFormError(null);
+                            }}
+                            error={Boolean(errors.dueDate)}
+                        />
                     )} />
                     {errors.dueDate && <p className="text-[11px] text-rose-600">{errors.dueDate.message}</p>}
                 </div>

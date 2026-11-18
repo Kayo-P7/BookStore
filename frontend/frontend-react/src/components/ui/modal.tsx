@@ -28,6 +28,9 @@ export function Modal({
 
     React.useEffect(() => {
         setMounted(true);
+        return () => {
+            document.body.style.overflow = '';
+        };
     }, []);
 
     React.useEffect(() => {

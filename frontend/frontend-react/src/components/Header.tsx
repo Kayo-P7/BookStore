@@ -50,8 +50,8 @@ export function Header({
                         <BookOpen className="w-5 h-5" />
                     </div>
                     <div className="flex flex-col">
-                        <span className="font-bold text-sm tracking-tight text-foreground flex items-center gap-1.5">
-                            BookStore <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded border border-border/80 bg-muted/60 text-muted-foreground">OS</span>
+                        <span className="font-bold text-sm tracking-tight text-foreground">
+                            BookStore
                         </span>
                         <span className="text-[10px] text-muted-foreground hidden sm:block">Painel Administrativo</span>
                     </div>

@@ -310,7 +310,7 @@ export function UserFormModal({
                                     </span>
                                     <span
                                         className={cn(
-                                            'text-[10px] font-semibold px-2 py-0.5 rounded-full border transition-colors',
+                                            'text-[10px] font-semibold px-2 py-0.5 rounded-md border transition-colors',
                                             isActive
                                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                                 : 'bg-zinc-100 text-zinc-600 border-zinc-200'

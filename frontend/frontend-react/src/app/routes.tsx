@@ -13,11 +13,11 @@ function lazyNamed<K extends string, T extends Record<K, React.ComponentType>>(
 
 const DashboardPage = lazyNamed(() => import('../modules/dashboard/DashboardPage'), 'DashboardPage');
 const BooksPage = lazyNamed(() => import('../modules/books/BooksPage'), 'BooksPage');
+const BookDetailsPage = lazyNamed(() => import('../modules/books/BookDetailsPage'), 'BookDetailsPage');
 const CustomersPage = lazyNamed(() => import('../modules/customers/CustomersPage'), 'CustomersPage');
 const SalesPage = lazyNamed(() => import('../modules/sales/SalesPage'), 'SalesPage');
 const LoansPage = lazyNamed(() => import('../modules/loans/LoansPage'), 'LoansPage');
 const ServicesPage = lazyNamed(() => import('../modules/services/ServicesPage'), 'ServicesPage');
-const SettingsPage = lazyNamed(() => import('../modules/settings/SettingsPage'), 'SettingsPage');
 const UsersPage = lazyNamed(() => import('../modules/users/UsersPage'), 'UsersPage');
 const LoginPage = lazyNamed(() => import('../modules/auth/LoginPage'), 'LoginPage');
 const PrimeiroAcessoPage = lazyNamed(() => import('../modules/auth/PrimeiroAcessoPage'), 'PrimeiroAcessoPage');
@@ -54,6 +54,9 @@ export function AppRoutes() {
                 } />
                 <Route path="/auth/primeiro-acesso" element={<Navigate to="/primeiro-acesso" replace />} />
 
+                {/* pagina publica de detalhes do livro aberta via leitura de qr code */}
+                <Route path="/books/:id" element={<BookDetailsPage />} />
+
                 {/* layout autenticado principal protegido por sessao */}
                 <Route path="/" element={
                     <ProtectedRoute>
@@ -74,7 +77,6 @@ export function AppRoutes() {
                             <UsersPage />
                         </ProtectedRoute>
                     } />
-                    <Route path="settings" element={<SettingsPage />} />
                 </Route>
 
                 {/* rota explicita de 404 e captura de qualquer rota nao mapeada */}

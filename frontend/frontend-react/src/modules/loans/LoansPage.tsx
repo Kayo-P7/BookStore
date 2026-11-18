@@ -180,7 +180,7 @@ export function LoansPage() {
                                     {visibleColumns.includes('dueDate') && <TableCell className="text-xs text-muted-foreground">{formatShortDate(loan.dueDate)}</TableCell>}
                                     {visibleColumns.includes('returnDate') && <TableCell className="text-xs text-muted-foreground">{formatShortDate(loan.returnDate)}</TableCell>}
                                     {visibleColumns.includes('status') && <TableCell>
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${active ? 'bg-amber-50 text-amber-700' : loan.status === 'RETURNED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                                        <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-semibold ${active ? 'bg-amber-50 text-amber-700 border-amber-200' : loan.status === 'RETURNED' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                                             {loan.status === 'ACTIVE' ? 'Ativo' : loan.status === 'RETURNED' ? 'Devolvido' : 'Cancelado'}
                                         </span>
                                     </TableCell>}

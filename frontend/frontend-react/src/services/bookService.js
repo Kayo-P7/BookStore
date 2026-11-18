@@ -14,6 +14,25 @@ export const bookService = {
     // busca todos os livros cadastrados com cache em memoria e deduplicacao
     findAll: () => cachedRequest(BASE_URL, () => httpClient(BASE_URL)),
 
+    // busca dados completos de um livro especifico por id
+    findById: id => cachedRequest(`${BASE_URL}/${id}`, () => httpClient(`${BASE_URL}/${id}`)),
+
+    // obtem url de imagem qr code apontando para a pagina de detalhes do livro
+    getQrCodeUrl: async (id, baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173') => {
+        const cleanBase = String(baseUrl).replace(/\/+$/, '');
+        const fallback = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(`${cleanBase}/books/${id}`)}`;
+        try {
+            const url = await cachedRequest(
+                `${BASE_URL}/${id}/qr?baseUrl=${encodeURIComponent(cleanBase)}`,
+                () => httpClient(`${BASE_URL}/${id}/qr?baseUrl=${encodeURIComponent(cleanBase)}`),
+                300000
+            );
+            return typeof url === 'string' && url.startsWith('http') ? url.trim() : fallback;
+        } catch {
+            return fallback;
+        }
+    },
+
     // consulta enxuta via graphql (-45% de payload sem campo description) com fallback rest
     findSummaryList: () =>
         cachedRequest(`${GRAPHQL_URL}:books-summary`, async () => {

@@ -148,7 +148,7 @@ export function ScreenNotice({
                         <button
                             type="button"
                             onClick={onClearAll}
-                            className="text-[11px] font-semibold text-[#737373] hover:text-[#171717] bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-full border border-[#e5e5e5] shadow-xs hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+                            className="text-[11px] font-semibold text-[#737373] hover:text-[#171717] bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-md border border-[#e5e5e5] shadow-xs hover:bg-[#f5f5f5] transition-colors cursor-pointer"
                         >
                             Limpar todos ({count})
                         </button>
@@ -224,7 +224,7 @@ export function ScreenNotice({
 
                                 {/* indicador de notificacoes empilhadas no card frontal */}
                                 {isTop && isStacked && !isHovered && (
-                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-zinc-100 text-zinc-600 border border-zinc-200 shrink-0">
+                                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-zinc-100 text-zinc-600 border border-zinc-200 shrink-0">
                                         <Layers className="w-2.5 h-2.5" />
                                         +{count - 1}
                                     </span>

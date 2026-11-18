@@ -76,7 +76,12 @@ export async function httpClient(url, options = {}) {
     if (response.status === 204) return null;
 
     const body = await response.text();
-    return body ? JSON.parse(body) : null;
+    if (!body) return null;
+    try {
+        return JSON.parse(body);
+    } catch {
+        return body;
+    }
 }
 
 // executa consulta cacheavel deduplicando chamadas simultaneas para a mesma rota

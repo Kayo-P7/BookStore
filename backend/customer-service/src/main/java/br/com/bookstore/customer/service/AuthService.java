@@ -143,7 +143,9 @@ public class AuthService {
             throw new IllegalArgumentException("Identificacao do usuario ausente");
         }
 
-        User user = userRepository.findByEmail(email.trim().toLowerCase())
+        String cleanEmail = email.trim();
+        User user = userRepository.findByEmail(cleanEmail.toLowerCase())
+                .or(() -> userRepository.findByEmailIgnoreCase(cleanEmail))
                 .orElseThrow(() -> new IllegalArgumentException("Usuario nao encontrado"));
 
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {

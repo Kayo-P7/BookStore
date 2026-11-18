@@ -13,8 +13,8 @@ export function AuthLayout() {
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-600/20 mb-4 ring-4 ring-emerald-500/10">
                             <BookOpen className="w-7 h-7" />
                         </div>
-                        <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-[#171717]">BookStore OS</h1>
-                        <p className="text-sm text-[#737373] mt-1.5 font-normal">Plataforma Unificada de Gestão de Livraria</p>
+                        <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-[#171717]">BookStore</h1>
+                        <p className="text-sm text-[#737373] mt-1.5 font-normal">Sistema de gestão de livraria</p>
                     </div>
 
                     {/* conteudo da rota de autenticacao */}

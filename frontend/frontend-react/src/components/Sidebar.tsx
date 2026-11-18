@@ -7,7 +7,6 @@ import {
     ShoppingBag,
     BookMarked,
     MapPin,
-    Settings,
     UserCog,
     X
 } from 'lucide-react';
@@ -74,13 +73,7 @@ export function Sidebar({
                       icon: UserCog
                   }
               ]
-            : []),
-        {
-            to: '/settings',
-            label: 'Configurações',
-            description: 'Diagnóstico e saúde dos serviços',
-            icon: Settings
-        }
+            : [])
     ];
 
     return (
@@ -124,7 +117,7 @@ export function Sidebar({
                                         {isActive && (
                                             <span
                                                 className={cn(
-                                                    'absolute top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-[#059669] animate-message-liquid',
+                                                    'absolute top-1/2 -translate-y-1/2 w-1 h-5 rounded-xs bg-[#059669] animate-message-liquid',
                                                     collapsed ? 'left-1' : 'left-1.5'
                                                 )}
                                             />
@@ -217,7 +210,7 @@ export function Sidebar({
                                         {({ isActive }) => (
                                             <>
                                                 {isActive && (
-                                                    <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-[#059669]" />
+                                                    <span className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-5 rounded-xs bg-[#059669]" />
                                                 )}
 
                                                 <Icon

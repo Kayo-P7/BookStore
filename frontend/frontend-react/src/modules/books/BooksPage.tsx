@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, QrCode, Trash2 } from 'lucide-react';
 import { bookService } from '../../services/bookService';
 import { Book } from '../../types';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
@@ -12,6 +12,9 @@ import { useAuth } from '../../context/AuthContext';
 
 const BookFormModal = React.lazy(() =>
     import('./BookFormModal').then(m => ({ default: m.BookFormModal }))
+);
+const BookQrModal = React.lazy(() =>
+    import('./BookQrModal').then(m => ({ default: m.BookQrModal }))
 );
 const ConfirmDialog = React.lazy(() =>
     import('../../components/ui/confirm-dialog').then(m => ({ default: m.ConfirmDialog }))
@@ -36,6 +39,7 @@ export function BooksPage() {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [editingBook, setEditingBook] = React.useState<Book | null>(null);
+    const [qrBook, setQrBook] = React.useState<Book | null>(null);
     const [bookToDelete, setBookToDelete] = React.useState<Book | null>(null);
     const [deleting, setDeleting] = React.useState(false);
     const [currentPage, setCurrentPage] = React.useState(1);
@@ -241,6 +245,15 @@ export function BooksPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
+                                                        className="h-8 w-8 text-muted-foreground hover:text-emerald-700 hover:bg-emerald-50"
+                                                        onClick={() => setQrBook(book)}
+                                                        title="Gerar QR Code do livro"
+                                                    >
+                                                        <QrCode className="w-3.5 h-3.5" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
                                                         className="h-8 w-8 text-muted-foreground hover:text-foreground"
                                                         onClick={() => {
                                                             setEditingBook(book);
@@ -282,6 +295,16 @@ export function BooksPage() {
                         }}
                         onSubmit={handleSaveBook}
                         editingBook={editingBook}
+                    />
+                </React.Suspense>
+            )}
+
+            {qrBook && (
+                <React.Suspense fallback={null}>
+                    <BookQrModal
+                        book={qrBook}
+                        isOpen={Boolean(qrBook)}
+                        onClose={() => setQrBook(null)}
                     />
                 </React.Suspense>
             )}

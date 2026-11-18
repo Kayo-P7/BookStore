@@ -4,6 +4,7 @@ import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTable
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
 import { SkeletonTable } from '../../components/ui/skeleton';
+import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
 import { userService } from '../../services/userService';
 import { formatShortDate } from '../../utils/formatters';
@@ -12,9 +13,6 @@ import { SystemUser, UserFormData } from '../../types';
 
 const UserFormModal = React.lazy(() =>
     import('./UserFormModal').then(m => ({ default: m.UserFormModal }))
-);
-const ConfirmDialog = React.lazy(() =>
-    import('../../components/ui/confirm-dialog').then(m => ({ default: m.ConfirmDialog }))
 );
 
 const allColumns: ColumnDefinition[] = [
@@ -37,6 +35,8 @@ export function UsersPage() {
     const [editingUser, setEditingUser] = React.useState<SystemUser | null>(null);
     const [userToDelete, setUserToDelete] = React.useState<SystemUser | null>(null);
     const [deleting, setDeleting] = React.useState(false);
+    const [userToDeactivate, setUserToDeactivate] = React.useState<SystemUser | null>(null);
+    const [deactivating, setDeactivating] = React.useState(false);
     const [visibleColumns, setVisibleColumns] = React.useState<string[]>([
         'user',
         'role',
@@ -95,35 +95,60 @@ export function UsersPage() {
         }
     }
 
+    async function executeToggleActive(targetUser: SystemUser) {
+        const updated = await userService.update(targetUser.id, {
+            name: targetUser.name,
+            email: targetUser.email,
+            role: targetUser.role.includes('ADMIN') ? 'ADMIN' : 'SELLER',
+            active: !targetUser.active
+        });
+        setUsers(prev => prev.map(u => (u.id === targetUser.id ? updated : u)));
+        showNotice(
+            `Usuário ${updated.active ? 'ativado' : 'desativado'} com sucesso.`,
+            'success'
+        );
+    }
+
     async function handleToggleActive(targetUser: SystemUser) {
         if (targetUser.id === loggedUser?.userId) {
-            showNotice('Você não pode inativar seu próprio usuário em sessão.', 'error');
+            showNotice('Você não pode desativar seu próprio usuário em sessão.', 'error');
+            return;
+        }
+
+        if (targetUser.active) {
+            setUserToDeactivate(targetUser);
             return;
         }
 
         try {
-            const updated = await userService.update(targetUser.id, {
-                name: targetUser.name,
-                email: targetUser.email,
-                role: targetUser.role.includes('ADMIN') ? 'ADMIN' : 'SELLER',
-                active: !targetUser.active
-            });
-            setUsers(prev => prev.map(u => (u.id === targetUser.id ? updated : u)));
-            showNotice(
-                `Usuário ${updated.active ? 'ativado' : 'inativado'} com sucesso.`,
-                'success'
-            );
+            await executeToggleActive(targetUser);
         } catch (err) {
             console.error('Falha ao alternar status do usuário', err);
             showNotice('Erro ao alterar status do usuário.', 'error');
         }
     }
 
+    async function handleConfirmDeactivate() {
+        if (!userToDeactivate) return;
+        setDeactivating(true);
+        try {
+            await executeToggleActive(userToDeactivate);
+            setUserToDeactivate(null);
+        } catch (err) {
+            console.error('Falha ao desativar usuário', err);
+            const msg = err instanceof Error ? err.message : 'Erro ao desativar usuário.';
+            setUserToDeactivate(null);
+            showNotice(msg, 'error');
+        } finally {
+            setDeactivating(false);
+        }
+    }
+
     async function handleConfirmDelete() {
         if (!userToDelete) return;
         if (userToDelete.id === loggedUser?.userId) {
-            showNotice('Você não pode excluir seu próprio usuário.', 'error');
             setUserToDelete(null);
+            showNotice('Você não pode excluir seu próprio usuário.', 'error');
             return;
         }
 
@@ -135,7 +160,9 @@ export function UsersPage() {
             showNotice('Usuário removido com sucesso.', 'success');
         } catch (err) {
             console.error('Falha ao excluir usuário', err);
-            showNotice('Erro ao excluir usuário. Tente novamente.', 'error');
+            const msg = err instanceof Error ? err.message : 'Erro ao excluir usuário. Tente novamente.';
+            setUserToDelete(null);
+            showNotice(msg, 'error');
         } finally {
             setDeleting(false);
         }
@@ -325,7 +352,7 @@ export function UsersPage() {
                                         {visibleColumns.includes('role') && (
                                             <TableCell>
                                                 <span
-                                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium border ${
+                                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium border ${
                                                         isAdmin
                                                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                                             : 'bg-teal-50 text-teal-700 border-teal-200'
@@ -345,10 +372,10 @@ export function UsersPage() {
                                         {visibleColumns.includes('status') && (
                                             <TableCell>
                                                 <span
-                                                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                                                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-medium ${
                                                         user.active
-                                                            ? 'bg-emerald-100/70 text-emerald-800'
-                                                            : 'bg-zinc-100 text-zinc-600'
+                                                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                                            : 'bg-zinc-100 text-zinc-600 border-zinc-200'
                                                     }`}
                                                 >
                                                     <span
@@ -449,20 +476,30 @@ export function UsersPage() {
                 </React.Suspense>
             )}
 
+            {/* dialog de confirmacao para desativar usuario */}
+            <ConfirmDialog
+                isOpen={Boolean(userToDeactivate)}
+                variant="warning"
+                title="Desativar Usuário"
+                description={`Tem certeza que deseja desativar o acesso do usuário "${userToDeactivate?.name}" (${userToDeactivate?.email})? Ele não poderá entrar no sistema enquanto estiver inativo.`}
+                confirmText="Sim, Desativar"
+                cancelText="Cancelar"
+                loading={deactivating}
+                onConfirm={handleConfirmDeactivate}
+                onCancel={() => !deactivating && setUserToDeactivate(null)}
+            />
+
             {/* dialog de confirmacao para exclusao */}
-            {userToDelete && (
-                <React.Suspense fallback={null}>
-                    <ConfirmDialog
-                        isOpen={Boolean(userToDelete)}
-                        onClose={() => setUserToDelete(null)}
-                        onConfirm={handleConfirmDelete}
-                        title="Excluir Usuário"
-                        description={`Tem certeza que deseja remover o usuário "${userToDelete?.name}" (${userToDelete?.email})? Esta ação não pode ser desfeita.`}
-                        confirmText={deleting ? 'Excluindo...' : 'Sim, Excluir'}
-                        destructive
-                    />
-                </React.Suspense>
-            )}
+            <ConfirmDialog
+                isOpen={Boolean(userToDelete)}
+                title="Excluir Usuário"
+                description={`Tem certeza que deseja remover o usuário "${userToDelete?.name}" (${userToDelete?.email})? Esta ação não pode ser desfeita.`}
+                confirmText="Sim, Excluir"
+                cancelText="Cancelar"
+                loading={deleting}
+                onConfirm={handleConfirmDelete}
+                onCancel={() => !deleting && setUserToDelete(null)}
+            />
         </div>
     );
 }
