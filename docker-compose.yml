@@ -135,10 +135,6 @@ services:
     environment:
       - GATEWAY_URL=http://gateway
       - REACT_PORT=${REACT_PORT}
-    volumes:
-      - ./frontend/frontend-react:/app
-      - /app/node_modules
-    command: npm run dev -- --host 0.0.0.0
     depends_on:
       - gateway
 
@@ -147,7 +143,7 @@ services:
     ports:
       - "${VUE_PORT}:5174"
     environment:
-      - GATEWAY_URL=${GATEWAY_URL}
+      - GATEWAY_URL=${GATEWAY_URL:-http://gateway}
       - VUE_PORT=${VUE_PORT}
     depends_on:
       - gateway
