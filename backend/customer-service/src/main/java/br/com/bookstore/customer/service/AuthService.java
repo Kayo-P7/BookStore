@@ -103,19 +103,18 @@ public class AuthService {
         );
     }
 
-    // valida token de atualizacao e emite novo token de acesso
+    // valida token de atualizacao em passe unico e emite novo token de acesso
     public AuthResponse refresh(RefreshTokenRequest request) {
         String refreshToken = request.refreshToken();
-        if (!jwtService.isTokenValid(refreshToken)) {
-            throw new IllegalArgumentException("Refresh token invalido ou expirado");
-        }
+        var tokenClaims = jwtService.parseValidClaims(refreshToken)
+                .orElseThrow(() -> new IllegalArgumentException("Refresh token invalido ou expirado"));
 
-        String tokenType = jwtService.extractClaim(refreshToken, claims -> claims.get("type", String.class));
+        String tokenType = tokenClaims.get("type", String.class);
         if (!"REFRESH".equals(tokenType)) {
             throw new IllegalArgumentException("Token fornecido nao e um refresh token");
         }
 
-        String email = jwtService.extractUsername(refreshToken);
+        String email = tokenClaims.getSubject();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario associado ao token nao encontrado"));
 
