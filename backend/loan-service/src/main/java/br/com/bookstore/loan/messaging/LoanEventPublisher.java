@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 // publicador de eventos de dominio de emprestimo e devolucao no rabbitmq
 @Component
@@ -37,6 +39,19 @@ public class LoanEventPublisher {
     }
 
     private void publish(String routingKey, Object payload) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    sendNow(routingKey, payload);
+                }
+            });
+            return;
+        }
+        sendNow(routingKey, payload);
+    }
+
+    private void sendNow(String routingKey, Object payload) {
         try {
             rabbitTemplate.convertAndSend(RabbitMQConfig.BOOKSTORE_EVENTS_EXCHANGE, routingKey, payload);
         } catch (AmqpException ex) {

@@ -51,12 +51,11 @@ class LoanServiceTest {
     private LoanService loanService;
 
     @Test
-    @DisplayName("deve criar emprestimo usando inventario existente e publicar evento")
+    @DisplayName("deve criar emprestimo usando inventario existente de forma atomica e publicar evento")
     void shouldCreateLoanWithExistingInventory() {
         LocalDate dueDate = LocalDate.now().plusDays(7);
-        BookLoanInventory inventory = BookLoanInventory.initialize(10L, 3);
         when(catalogClient.getBookById(10L)).thenReturn(new CatalogBookResponse(10L, "Clean Code", 3));
-        when(inventoryRepository.findByBookId(10L)).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.borrowCopyIfAvailable(10L)).thenReturn(1);
         when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> {
             Loan loan = inv.getArgument(0);
             loan.setId(1L);
@@ -67,8 +66,7 @@ class LoanServiceTest {
 
         assertEquals(1L, response.id());
         assertEquals(LoanStatus.ACTIVE, response.status());
-        assertEquals(2, inventory.getAvailableCopies());
-        assertEquals(1, inventory.getBorrowedCopies());
+        verify(inventoryRepository).borrowCopyIfAvailable(10L);
         verify(customerClient).validateCustomerExists(5L);
         verify(loanEventPublisher).publishLoanCreated(any(Loan.class));
     }
@@ -78,6 +76,7 @@ class LoanServiceTest {
     void shouldInitializeInventoryFromCatalogWhenMissing() {
         LocalDate dueDate = LocalDate.now().plusDays(5);
         when(catalogClient.getBookById(20L)).thenReturn(new CatalogBookResponse(20L, "DDD", 2));
+        when(inventoryRepository.borrowCopyIfAvailable(20L)).thenReturn(0);
         when(inventoryRepository.findByBookId(20L)).thenReturn(Optional.empty());
         when(inventoryRepository.save(any(BookLoanInventory.class))).thenAnswer(inv -> inv.getArgument(0));
         when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> {
@@ -89,7 +88,7 @@ class LoanServiceTest {
         LoanResponseDTO response = loanService.createLoan(new LoanRequestDTO(20L, 7L, dueDate));
 
         assertEquals(LoanStatus.ACTIVE, response.status());
-        verify(inventoryRepository, times(2)).save(any(BookLoanInventory.class));
+        verify(inventoryRepository, times(1)).save(argThat(inv -> inv.getAvailableCopies() == 1 && inv.getBorrowedCopies() == 1));
         verify(loanEventPublisher).publishLoanCreated(any(Loan.class));
     }
 
@@ -101,6 +100,7 @@ class LoanServiceTest {
         inventory.setBorrowedCopies(1);
 
         when(catalogClient.getBookById(10L)).thenReturn(new CatalogBookResponse(10L, "Clean Code", 1));
+        when(inventoryRepository.borrowCopyIfAvailable(10L)).thenReturn(0);
         when(inventoryRepository.findByBookId(10L)).thenReturn(Optional.of(inventory));
 
         assertThrows(
@@ -112,7 +112,7 @@ class LoanServiceTest {
     }
 
     @Test
-    @DisplayName("deve registrar devolucao com sucesso e atualizar inventario")
+    @DisplayName("deve registrar devolucao com sucesso e atualizar inventario atomicamente")
     void shouldReturnActiveLoanSuccessfully() {
         Loan loan = new Loan();
         loan.setId(9L);
@@ -122,20 +122,15 @@ class LoanServiceTest {
         loan.setDueDate(LocalDate.now().plusDays(5));
         loan.setStatus(LoanStatus.ACTIVE);
 
-        BookLoanInventory inventory = BookLoanInventory.initialize(10L, 2);
-        inventory.setAvailableCopies(1);
-        inventory.setBorrowedCopies(1);
-
         when(loanRepository.findById(9L)).thenReturn(Optional.of(loan));
-        when(inventoryRepository.findByBookId(10L)).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.returnCopy(10L)).thenReturn(1);
         when(loanRepository.save(any(Loan.class))).thenAnswer(inv -> inv.getArgument(0));
 
         LoanResponseDTO response = loanService.returnLoan(9L);
 
         assertEquals(LoanStatus.RETURNED, response.status());
         assertNotNull(response.returnDate());
-        assertEquals(2, inventory.getAvailableCopies());
-        assertEquals(0, inventory.getBorrowedCopies());
+        verify(inventoryRepository).returnCopy(10L);
         verify(loanEventPublisher).publishLoanReturned(loan);
     }
 

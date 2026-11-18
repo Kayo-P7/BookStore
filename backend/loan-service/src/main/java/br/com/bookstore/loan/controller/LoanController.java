@@ -5,7 +5,13 @@ import br.com.bookstore.loan.dto.BookLoanInventoryResponseDTO;
 import br.com.bookstore.loan.dto.LoanRequestDTO;
 import br.com.bookstore.loan.dto.LoanResponseDTO;
 import br.com.bookstore.loan.service.LoanService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,8 +48,19 @@ public class LoanController {
     }
 
     @GetMapping("/inventory")
-    public List<BookLoanInventoryResponseDTO> findAllInventories() {
-        return loanService.findAllInventories();
+    public List<BookLoanInventoryResponseDTO> findAllInventories(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            HttpServletResponse response
+    ) {
+        if (page == null && size == null) {
+            return loanService.findAllInventories();
+        }
+        Page<BookLoanInventoryResponseDTO> result = loanService.findInventoriesPage(
+                PageRequest.of(Math.max(page != null ? page : 0, 0), Math.clamp(size != null ? size : 20, 1, 200), Sort.by("id").descending())
+        );
+        response.setHeader("X-Total-Count", String.valueOf(result.getTotalElements()));
+        return result.getContent();
     }
 
     @GetMapping("/inventory/{bookId}")
@@ -52,8 +69,24 @@ public class LoanController {
     }
 
     @GetMapping
-    public List<LoanResponseDTO> findAllLoans() {
-        return loanService.findAllLoans();
+    public List<LoanResponseDTO> findAllLoans(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            HttpServletResponse response
+    ) {
+        if (page == null && size == null) {
+            return loanService.findAllLoans();
+        }
+        Page<LoanResponseDTO> result = loanService.findLoansPage(
+                PageRequest.of(Math.max(page != null ? page : 0, 0), Math.clamp(size != null ? size : 20, 1, 200), Sort.by("id").descending())
+        );
+        response.setHeader("X-Total-Count", String.valueOf(result.getTotalElements()));
+        return result.getContent();
+    }
+
+    @GetMapping("/paged")
+    public Page<LoanResponseDTO> findLoansPaged(@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+        return loanService.findLoansPage(pageable);
     }
 
     @GetMapping("/{loanId}")

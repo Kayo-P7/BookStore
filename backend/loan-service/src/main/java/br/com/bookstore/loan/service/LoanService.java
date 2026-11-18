@@ -15,21 +15,34 @@ import br.com.bookstore.loan.model.Loan;
 import br.com.bookstore.loan.model.LoanStatus;
 import br.com.bookstore.loan.repository.BookLoanInventoryRepository;
 import br.com.bookstore.loan.repository.LoanRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionOperations;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 // servico de regras de negocio para emprestimos, devolucoes e inventario de copias
 @Service
 public class LoanService {
+
+    private static final ExecutorService VIRTUAL_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     private final LoanRepository loanRepository;
     private final BookLoanInventoryRepository inventoryRepository;
     private final CatalogClient catalogClient;
     private final CustomerClient customerClient;
     private final LoanEventPublisher loanEventPublisher;
+    private TransactionOperations transactionOperations = TransactionOperations.withoutTransaction();
 
     public LoanService(
             LoanRepository loanRepository,
@@ -45,35 +58,64 @@ public class LoanService {
         this.loanEventPublisher = loanEventPublisher;
     }
 
-    @Transactional
+    @Autowired(required = false)
+    void setTransactionOperations(TransactionOperations transactionOperations) {
+        if (transactionOperations != null) {
+            this.transactionOperations = transactionOperations;
+        }
+    }
+
+    // valida catalogo e cliente em paralelo fora da transacao de banco e abate copia atomicamente
     public LoanResponseDTO createLoan(LoanRequestDTO request) {
-        CatalogBookResponse book = catalogClient.getBookById(request.bookId());
-        customerClient.validateCustomerExists(request.customerId());
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        CompletableFuture<CatalogBookResponse> bookFuture = CompletableFuture.supplyAsync(() -> {
+            SecurityContext previous = SecurityContextHolder.getContext();
+            try {
+                SecurityContextHolder.setContext(securityContext);
+                return catalogClient.getBookById(request.bookId());
+            } finally {
+                SecurityContextHolder.setContext(previous);
+            }
+        }, VIRTUAL_EXECUTOR);
 
-        // garante compatibilidade com livros ja existentes antes da ativacao do evento rabbitmq
-        BookLoanInventory inventory = inventoryRepository
-                .findByBookId(request.bookId())
-                .orElseGet(() -> inventoryRepository.save(BookLoanInventory.initialize(book.id(), book.stock())));
-
-        if (inventory.getAvailableCopies() <= 0) {
-            throw new BusinessConflictException("No copies available for loan");
+        final CatalogBookResponse book;
+        try {
+            customerClient.validateCustomerExists(request.customerId());
+            book = bookFuture.join();
+        } catch (CompletionException ex) {
+            if (ex.getCause() instanceof RuntimeException runtimeException) {
+                throw runtimeException;
+            }
+            throw ex;
         }
 
-        inventory.setAvailableCopies(inventory.getAvailableCopies() - 1);
-        inventory.setBorrowedCopies(inventory.getBorrowedCopies() + 1);
+        return transactionOperations.execute(status -> {
+            int borrowed = inventoryRepository.borrowCopyIfAvailable(request.bookId());
+            if (borrowed == 0) {
+                // garante compatibilidade com livros ja existentes antes da ativacao do evento rabbitmq
+                BookLoanInventory inventory = inventoryRepository
+                        .findByBookId(request.bookId())
+                        .orElseGet(() -> BookLoanInventory.initialize(book.id(), book.stock()));
 
-        Loan loan = new Loan();
-        loan.setBookId(request.bookId());
-        loan.setCustomerId(request.customerId());
-        loan.setLoanDate(LocalDate.now());
-        loan.setDueDate(request.dueDate());
-        loan.setStatus(LoanStatus.ACTIVE);
+                if (inventory.getAvailableCopies() <= 0) {
+                    throw new BusinessConflictException("No copies available for loan");
+                }
+                inventory.setAvailableCopies(inventory.getAvailableCopies() - 1);
+                inventory.setBorrowedCopies(inventory.getBorrowedCopies() + 1);
+                inventoryRepository.save(inventory);
+            }
 
-        inventoryRepository.save(inventory);
-        Loan savedLoan = loanRepository.save(loan);
-        loanEventPublisher.publishLoanCreated(savedLoan);
+            Loan loan = new Loan();
+            loan.setBookId(request.bookId());
+            loan.setCustomerId(request.customerId());
+            loan.setLoanDate(LocalDate.now());
+            loan.setDueDate(request.dueDate());
+            loan.setStatus(LoanStatus.ACTIVE);
 
-        return toResponse(savedLoan);
+            Loan savedLoan = loanRepository.save(loan);
+            loanEventPublisher.publishLoanCreated(savedLoan);
+            return toResponse(savedLoan);
+        });
     }
 
     @Transactional
@@ -85,35 +127,34 @@ public class LoanService {
             throw new BusinessConflictException("Loan is not active");
         }
 
-        BookLoanInventory inventory = inventoryRepository
-                .findByBookId(loan.getBookId())
-                .orElseThrow(() -> new ResourceNotFoundException("Book inventory not found: " + loan.getBookId()));
+        int updated = inventoryRepository.returnCopy(loan.getBookId());
+        if (updated == 0) {
+            throw new ResourceNotFoundException("Book inventory not found: " + loan.getBookId());
+        }
 
         loan.setReturnDate(LocalDate.now());
         loan.setStatus(LoanStatus.RETURNED);
 
-        inventory.setAvailableCopies(inventory.getAvailableCopies() + 1);
-        inventory.setBorrowedCopies(Math.max(inventory.getBorrowedCopies() - 1, 0));
-
-        inventoryRepository.save(inventory);
         Loan returnedLoan = loanRepository.save(loan);
         loanEventPublisher.publishLoanReturned(returnedLoan);
 
         return toResponse(returnedLoan);
     }
 
-    @Transactional
+    // valida livro no catalogo fora da transacao de banco antes de persistir inventario
     public BookLoanInventoryResponseDTO registerInventory(BookLoanInventoryRequestDTO request) {
         catalogClient.getBookById(request.bookId());
 
-        if (inventoryRepository.existsByBookId(request.bookId())) {
-            throw new BusinessConflictException("Inventory already registered for this book");
-        }
+        return transactionOperations.execute(status -> {
+            if (inventoryRepository.existsByBookId(request.bookId())) {
+                throw new BusinessConflictException("Inventory already registered for this book");
+            }
 
-        BookLoanInventory saved = inventoryRepository.save(
-                BookLoanInventory.initialize(request.bookId(), request.totalCopies())
-        );
-        return toInventoryResponse(saved);
+            BookLoanInventory saved = inventoryRepository.save(
+                    BookLoanInventory.initialize(request.bookId(), request.totalCopies())
+            );
+            return toInventoryResponse(saved);
+        });
     }
 
     @Transactional(readOnly = true)
@@ -122,6 +163,11 @@ public class LoanService {
                 .stream()
                 .map(this::toInventoryResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BookLoanInventoryResponseDTO> findInventoriesPage(Pageable pageable) {
+        return inventoryRepository.findAll(pageable).map(this::toInventoryResponse);
     }
 
     @Transactional(readOnly = true)
@@ -137,6 +183,11 @@ public class LoanService {
                 .stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<LoanResponseDTO> findLoansPage(Pageable pageable) {
+        return loanRepository.findAll(pageable).map(this::toResponse);
     }
 
     @Transactional(readOnly = true)
