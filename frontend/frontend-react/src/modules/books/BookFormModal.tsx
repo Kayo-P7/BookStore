@@ -27,7 +27,7 @@ const bookSchema = z.object({
     publisher: z.string().optional(),
     description: z.string().optional(),
     price: z
-        .string()
+        .string({ error: 'Informe o preço unitário.' })
         .min(1, 'Informe o preço unitário.')
         .refine(val => parseMoney(val) > 0, 'Informe um preço válido maior que zero (ex: R$ 49,90).'),
     stock: z
@@ -90,7 +90,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit, editingBook }: BookFo
         setFormError(null);
         isSubmittingRef.current = false;
         if (editingBook) {
-            const formattedPrice = maskMoney(
+            const { formatted: formattedPrice } = maskMoney(
                 String(Math.round((Number(editingBook.price) || 0) * 100))
             );
             reset({
@@ -106,7 +106,7 @@ export function BookFormModal({ isOpen, onClose, onSubmit, editingBook }: BookFo
             setSelectedGoogleBook(null);
             setSearchResults([]);
             setHasSearched(false);
-        } else if (!isOpen) {
+        } else {
             reset({
                 title: '',
                 authors: '',
@@ -438,13 +438,12 @@ export function BookFormModal({ isOpen, onClose, onSubmit, editingBook }: BookFo
                                 ref={priceInputRef}
                                 placeholder="R$ 0,00"
                                 inputMode="numeric"
-                                value={priceValue || ''}
+                                value={typeof priceValue === 'string' ? priceValue : ''}
                                 error={Boolean(errors.price)}
                                 onKeyDown={handleNumericKeyDown}
                                 onChange={e => {
                                     const { formatted } = maskMoney(e.target.value);
-                                    setValue('price', formatted, { shouldValidate: true });
-                                    if (errors.price) clearErrors('price');
+                                    setValue('price', formatted, { shouldValidate: true, shouldDirty: true });
                                 }}
                             />
                             {errors.price && (

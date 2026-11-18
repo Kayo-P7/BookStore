@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Edit2, QrCode, Trash2 } from 'lucide-react';
+import { Edit2, Eye, QrCode, Trash2 } from 'lucide-react';
 import { bookService } from '../../services/bookService';
 import { Book } from '../../types';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
@@ -12,6 +12,9 @@ import { useAuth } from '../../context/AuthContext';
 
 const BookFormModal = React.lazy(() =>
     import('./BookFormModal').then(m => ({ default: m.BookFormModal }))
+);
+const BookViewModal = React.lazy(() =>
+    import('./BookViewModal').then(m => ({ default: m.BookViewModal }))
 );
 const BookQrModal = React.lazy(() =>
     import('./BookQrModal').then(m => ({ default: m.BookQrModal }))
@@ -39,6 +42,7 @@ export function BooksPage() {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [isModalOpen, setIsModalOpen] = React.useState(false);
     const [editingBook, setEditingBook] = React.useState<Book | null>(null);
+    const [viewingBook, setViewingBook] = React.useState<Book | null>(null);
     const [qrBook, setQrBook] = React.useState<Book | null>(null);
     const [bookToDelete, setBookToDelete] = React.useState<Book | null>(null);
     const [deleting, setDeleting] = React.useState(false);
@@ -171,11 +175,14 @@ export function BooksPage() {
                 }
             >
                 {loading ? (
-                    <SkeletonTable rows={5} cols={visibleColumns.length} />
+                    <SkeletonTable rows={5} cols={visibleColumns.length + 1} />
                 ) : (
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className="w-11 pr-0">
+                                    <span className="sr-only">Visualizar</span>
+                                </TableHead>
                                 {visibleColumns.includes('id') && <TableHead className="w-20">ID</TableHead>}
                                 {visibleColumns.includes('title') && <TableHead>Título</TableHead>}
                                 {visibleColumns.includes('authors') && <TableHead>Autor(es)</TableHead>}
@@ -194,6 +201,17 @@ export function BooksPage() {
                                 const inStock = Number(book.stock) > 0;
                                 return (
                                     <TableRow key={book.id}>
+                                        <TableCell className="w-11 pr-0">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-muted-foreground hover:text-emerald-700 hover:bg-emerald-50"
+                                                onClick={() => setViewingBook(book)}
+                                                title="Visualizar informações do livro"
+                                            >
+                                                <Eye className="w-4 h-4" />
+                                            </Button>
+                                        </TableCell>
                                         {visibleColumns.includes('id') && (
                                             <TableCell className="font-mono text-xs text-muted-foreground">
                                                 #{book.id}
@@ -295,6 +313,16 @@ export function BooksPage() {
                         }}
                         onSubmit={handleSaveBook}
                         editingBook={editingBook}
+                    />
+                </React.Suspense>
+            )}
+
+            {viewingBook && (
+                <React.Suspense fallback={null}>
+                    <BookViewModal
+                        book={viewingBook}
+                        isOpen={Boolean(viewingBook)}
+                        onClose={() => setViewingBook(null)}
                     />
                 </React.Suspense>
             )}

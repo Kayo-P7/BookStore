@@ -201,7 +201,7 @@ export function ScreenNotice({
                                 zIndex,
                                 opacity: isHovered ? (item.isExiting ? 0 : 1) : opacity,
                                 transformOrigin: 'bottom center',
-                                transition: 'transform 360ms cubic-bezier(0.19, 1.28, 0.22, 1), opacity 240ms ease'
+                                transition: 'transform 220ms cubic-bezier(0.16, 1, 0.3, 1), opacity 180ms ease'
                             }}
                             className="absolute bottom-0 right-0 w-full pointer-events-auto"
                         >

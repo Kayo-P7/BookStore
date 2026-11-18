@@ -4,7 +4,7 @@
  * Remove qualquer caractere nao numerico da string.
  */
 export function onlyDigits(value: string | number | undefined | null): string {
-    if (value === undefined || value === null) return '';
+    if (value === undefined || value === null || typeof value === 'object') return '';
     return String(value).replace(/\D/g, '');
 }
 
@@ -51,11 +51,14 @@ export function maskMoney(value: string | number | undefined | null): {
     formatted: string;
     numeric: number;
 } {
-    const digits = onlyDigits(value);
+    const digits = onlyDigits(value).slice(0, 12);
     if (!digits) {
         return { formatted: '', numeric: 0 };
     }
     const cents = parseInt(digits, 10);
+    if (!cents) {
+        return { formatted: '', numeric: 0 };
+    }
     const numeric = cents / 100;
     const formatted = numeric.toLocaleString('pt-BR', {
         minimumFractionDigits: 2,
