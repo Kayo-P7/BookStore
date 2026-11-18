@@ -69,5 +69,21 @@ class JwtServiceTest {
     @DisplayName("deve retornar falso ao validar token malformado ou corrompido")
     void shouldReturnFalseForMalformedToken() {
         assertFalse(jwtService.isTokenValid("token-invalido-malformado"));
+        assertTrue(jwtService.parseValidClaims("token-invalido-malformado").isEmpty());
+    }
+
+    @Test
+    @DisplayName("deve extrair claims e papeis em passe unico com parseValidClaims")
+    void shouldParseValidClaimsInSinglePass() {
+        String token = jwtService.generateToken(
+                "admin@bookstore.com",
+                List.of(new SimpleGrantedAuthority(SecurityRoles.ROLE_ADMIN)),
+                Map.of("userId", 7L)
+        );
+
+        var claims = jwtService.parseValidClaims(token);
+        assertTrue(claims.isPresent());
+        assertEquals("admin@bookstore.com", claims.get().getSubject());
+        assertEquals(List.of(SecurityRoles.ROLE_ADMIN), jwtService.extractRoles(claims.get()));
     }
 }

@@ -3,6 +3,7 @@ package br.com.bookstore.security.service;
 import br.com.bookstore.security.config.SecurityProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,19 +18,35 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    private record ParserCache(String rawSecret, SecretKey key, JwtParser parser) {}
+
     private final SecurityProperties properties;
+    private volatile ParserCache cache;
 
     public JwtService(SecurityProperties properties) {
         this.properties = properties;
     }
 
-    // gera chave secreta a partir das propriedades com preenchimento seguro de 256 bits
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = properties.getSecret().getBytes(StandardCharsets.UTF_8);
+    // reutiliza chave hmac e parser thread-safe evitando realocacao a cada requisicao
+    private ParserCache parserCache() {
+        String currentSecret = properties.getSecret();
+        ParserCache local = this.cache;
+        if (local != null && Objects.equals(local.rawSecret(), currentSecret)) {
+            return local;
+        }
+        byte[] keyBytes = currentSecret.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
             keyBytes = Arrays.copyOf(keyBytes, 32);
         }
-        return Keys.hmacShaKeyFor(keyBytes);
+        SecretKey secretKey = Keys.hmacShaKeyFor(keyBytes);
+        JwtParser parser = Jwts.parser().verifyWith(secretKey).build();
+        ParserCache created = new ParserCache(currentSecret, secretKey, parser);
+        this.cache = created;
+        return created;
+    }
+
+    private SecretKey getSigningKey() {
+        return parserCache().key();
     }
 
     // extrai o identificador ou username armazenado no subject do token
@@ -44,9 +61,12 @@ public class JwtService {
     }
 
     // extrai a lista de papeis do claim roles
-    @SuppressWarnings("unchecked")
     public List<String> extractRoles(String token) {
-        Claims claims = extractAllClaims(token);
+        return extractRoles(extractAllClaims(token));
+    }
+
+    // extrai papeis a partir de claims ja validados sem novo parse criptografico
+    public List<String> extractRoles(Claims claims) {
         Object rolesObj = claims.get("roles");
         if (rolesObj instanceof List<?> list) {
             return list.stream().map(Object::toString).toList();
@@ -56,11 +76,25 @@ public class JwtService {
 
     // faz o parse e validacao criptografica da assinatura do token
     public Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
+        return parserCache().parser()
                 .parseSignedClaims(token)
                 .getPayload();
+    }
+
+    // valida assinatura e expiracao em passe unico retornando os claims
+    public Optional<Claims> parseValidClaims(String token) {
+        if (token == null || token.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            Claims claims = extractAllClaims(token);
+            if (claims.getExpiration() != null && !claims.getExpiration().before(new Date())) {
+                return Optional.of(claims);
+            }
+            return Optional.empty();
+        } catch (JwtException | IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     // gera token de acesso padrao com dados adicionais
@@ -104,21 +138,14 @@ public class JwtService {
 
     // verifica se o token possui assinatura valida e nao esta expirado
     public boolean isTokenValid(String token) {
-        try {
-            Claims claims = extractAllClaims(token);
-            return claims.getExpiration() != null && !claims.getExpiration().before(new Date());
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
+        return parseValidClaims(token).isPresent();
     }
 
-    // valida token confrontando com o usuario esperado
+    // valida token confrontando com o usuario esperado em passe unico
     public boolean isTokenValid(String token, String expectedUsername) {
-        try {
-            String username = extractUsername(token);
-            return username != null && username.equals(expectedUsername) && isTokenValid(token);
-        } catch (Exception e) {
-            return false;
-        }
+        return parseValidClaims(token)
+                .map(Claims::getSubject)
+                .filter(username -> username.equals(expectedUsername))
+                .isPresent();
     }
 }
