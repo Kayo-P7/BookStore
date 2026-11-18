@@ -16,6 +16,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { bookService } from '../../services/bookService';
 import { customerService } from '../../services/customerService';
 import { saleService } from '../../services/saleService';
+import { invalidateHttpCache } from '../../services/httpClient';
 import { Book, Customer, Sale } from '../../types';
 import { cn } from '../../components/ui/button';
 
@@ -23,20 +24,37 @@ export function DashboardPage() {
     const navigate = useNavigate();
     const [books, setBooks] = React.useState<Book[]>([]);
     const [customers, setCustomers] = React.useState<Customer[]>([]);
-    const [sales, setSales] = React.useState<Sale[]>([]);
+    const [recentSales, setRecentSales] = React.useState<Sale[]>([]);
+    const [salesCount, setSalesCount] = React.useState(0);
+    const [totalRevenue, setTotalRevenue] = React.useState(0);
     const [loading, setLoading] = React.useState(true);
 
-    async function loadData() {
+    async function loadData(forceRefresh = false) {
+        if (forceRefresh) {
+            invalidateHttpCache();
+        }
         setLoading(true);
         try {
-            const [b, c, s] = await Promise.allSettled([
+            const [b, c, summaryResult] = await Promise.allSettled([
                 bookService.findAll(),
                 customerService.findAll(),
-                saleService.findAll()
+                saleService.getSummary()
             ]);
             if (b.status === 'fulfilled' && Array.isArray(b.value)) setBooks(b.value);
             if (c.status === 'fulfilled' && Array.isArray(c.value)) setCustomers(c.value);
-            if (s.status === 'fulfilled' && Array.isArray(s.value)) setSales(s.value);
+
+            if (summaryResult.status === 'fulfilled' && summaryResult.value && Array.isArray(summaryResult.value.recentSales)) {
+                setSalesCount(Number(summaryResult.value.totalSales) || 0);
+                setTotalRevenue(Number(summaryResult.value.totalRevenue) || 0);
+                setRecentSales(summaryResult.value.recentSales);
+            } else {
+                const fallbackSales = await saleService.findAll().catch(() => []);
+                if (Array.isArray(fallbackSales)) {
+                    setSalesCount(fallbackSales.length);
+                    setTotalRevenue(fallbackSales.reduce((acc, sale) => acc + (Number(sale.total) || 0), 0));
+                    setRecentSales(fallbackSales.slice(-6).reverse());
+                }
+            }
         } finally {
             setLoading(false);
         }
@@ -46,18 +64,24 @@ export function DashboardPage() {
         loadData();
     }, []);
 
-    const totalRevenue = sales.reduce((acc, sale) => acc + (Number(sale.total) || 0), 0);
+    const customerMap = React.useMemo(
+        () => new Map(customers.map(c => [Number(c.id), c.name])),
+        [customers]
+    );
+    const bookMap = React.useMemo(
+        () => new Map(books.map(b => [Number(b.id), b.title])),
+        [books]
+    );
 
     function customerName(id: number) {
-        return customers.find(c => String(c.id) === String(id))?.name || `Cliente #${id}`;
+        return customerMap.get(Number(id)) || `Cliente #${id}`;
     }
 
     function bookTitle(id: number) {
-        return books.find(b => String(b.id) === String(id))?.title || `Livro #${id}`;
+        return bookMap.get(Number(id)) || `Livro #${id}`;
     }
 
-    const recentSales = sales.slice(-6).reverse();
-    const recentBooks = books.slice(-6).reverse();
+    const recentBooks = React.useMemo(() => books.slice(-6).reverse(), [books]);
 
     return (
         <div className="space-y-8 animate-in fade-in duration-300">
@@ -76,7 +100,7 @@ export function DashboardPage() {
                     <Button
                         variant="outline"
                         size="sm"
-                        onClick={loadData}
+                        onClick={() => loadData(true)}
                         disabled={loading}
                         className="gap-2"
                         title="Atualizar métricas"
@@ -139,7 +163,7 @@ export function DashboardPage() {
                     </div>
                     <div className="mt-3">
                         <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground font-mono sm:font-sans">
-                            {sales.length}
+                            {salesCount}
                         </div>
                         <p className="text-xs text-muted-foreground/80 mt-1">Pedidos faturados e entregues</p>
                     </div>

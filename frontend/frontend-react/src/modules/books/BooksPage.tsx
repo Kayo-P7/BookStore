@@ -7,10 +7,27 @@ import { Button } from '../../components/ui/button';
 import { SkeletonTable } from '../../components/ui/skeleton';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
 import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTableLayout';
-import { BookFormModal } from './BookFormModal';
-import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { formatCurrency } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
+
+const BookFormModal = React.lazy(() =>
+    import('./BookFormModal').then(m => ({ default: m.BookFormModal }))
+);
+const ConfirmDialog = React.lazy(() =>
+    import('../../components/ui/confirm-dialog').then(m => ({ default: m.ConfirmDialog }))
+);
+
+const allColumns: ColumnDefinition[] = [
+    { key: 'id', label: 'ID' },
+    { key: 'title', label: 'Título' },
+    { key: 'authors', label: 'Autores' },
+    { key: 'isbn', label: 'ISBN' },
+    { key: 'publisher', label: 'Editora' },
+    { key: 'price', label: 'Preço' },
+    { key: 'stock', label: 'Estoque' },
+    { key: 'status', label: 'Status' },
+    { key: 'actions', label: 'Ações' }
+];
 
 export function BooksPage() {
     const { isAdmin } = useAuth();
@@ -23,18 +40,6 @@ export function BooksPage() {
     const [deleting, setDeleting] = React.useState(false);
     const [currentPage, setCurrentPage] = React.useState(1);
     const pageSize = 8;
-
-    const allColumns: ColumnDefinition[] = [
-        { key: 'id', label: 'ID' },
-        { key: 'title', label: 'Título' },
-        { key: 'authors', label: 'Autores' },
-        { key: 'isbn', label: 'ISBN' },
-        { key: 'publisher', label: 'Editora' },
-        { key: 'price', label: 'Preço' },
-        { key: 'stock', label: 'Estoque' },
-        { key: 'status', label: 'Status' },
-        { key: 'actions', label: 'Ações' }
-    ];
 
     const [visibleColumns, setVisibleColumns] = React.useState<string[]>([
         'id',
@@ -106,19 +111,20 @@ export function BooksPage() {
         }
     }
 
-    const filteredBooks = books.filter(b => {
-        const q = searchTerm.toLowerCase();
-        return (
+    const filteredBooks = React.useMemo(() => {
+        const q = searchTerm.toLowerCase().trim();
+        if (!q) return books;
+        return books.filter(b =>
             b.title?.toLowerCase().includes(q) ||
             b.authors?.toLowerCase().includes(q) ||
             b.isbn?.toLowerCase().includes(q) ||
             b.publisher?.toLowerCase().includes(q)
         );
-    });
+    }, [books, searchTerm]);
 
-    const paginatedBooks = filteredBooks.slice(
-        (currentPage - 1) * pageSize,
-        currentPage * pageSize
+    const paginatedBooks = React.useMemo(
+        () => filteredBooks.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [filteredBooks, currentPage, pageSize]
     );
 
     return (
@@ -266,25 +272,33 @@ export function BooksPage() {
                 )}
             </RecordsTableLayout>
 
-            <BookFormModal
-                isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setEditingBook(null);
-                }}
-                onSubmit={handleSaveBook}
-                editingBook={editingBook}
-            />
+            {isModalOpen && (
+                <React.Suspense fallback={null}>
+                    <BookFormModal
+                        isOpen={isModalOpen}
+                        onClose={() => {
+                            setIsModalOpen(false);
+                            setEditingBook(null);
+                        }}
+                        onSubmit={handleSaveBook}
+                        editingBook={editingBook}
+                    />
+                </React.Suspense>
+            )}
 
-            <ConfirmDialog
-                isOpen={Boolean(bookToDelete)}
-                title="Excluir Livro"
-                description={`Deseja realmente remover o título "${bookToDelete?.title}" do catálogo? Esta ação não pode ser desfeita.`}
-                confirmText={deleting ? 'Excluindo...' : 'Sim, Excluir'}
-                destructive
-                onConfirm={handleConfirmDelete}
-                onCancel={() => setBookToDelete(null)}
-            />
+            {bookToDelete && (
+                <React.Suspense fallback={null}>
+                    <ConfirmDialog
+                        isOpen={Boolean(bookToDelete)}
+                        title="Excluir Livro"
+                        description={`Deseja realmente remover o título "${bookToDelete?.title}" do catálogo? Esta ação não pode ser desfeita.`}
+                        confirmText={deleting ? 'Excluindo...' : 'Sim, Excluir'}
+                        destructive
+                        onConfirm={handleConfirmDelete}
+                        onCancel={() => setBookToDelete(null)}
+                    />
+                </React.Suspense>
+            )}
         </div>
     );
 }

@@ -1,30 +1,39 @@
-import { httpClient } from './httpClient';
+import { httpClient, cachedRequest, invalidateHttpCache } from './httpClient';
 
 const BASE_URL = '/api/loans';
 
 export const loanService = {
-    findAll: () => httpClient(BASE_URL),
+    findAll: () => cachedRequest(BASE_URL, () => httpClient(BASE_URL)),
 
-    create: loan =>
-        httpClient(BASE_URL, {
+    create: async loan => {
+        const created = await httpClient(BASE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(loan)
-        }),
+        });
+        invalidateHttpCache(BASE_URL);
+        return created;
+    },
 
-    returnLoan: id =>
-        httpClient(`${BASE_URL}/${id}/return`, {
+    returnLoan: async id => {
+        const returned = await httpClient(`${BASE_URL}/${id}/return`, {
             method: 'PUT'
-        }),
+        });
+        invalidateHttpCache(BASE_URL);
+        return returned;
+    },
 
-    findAllInventories: () => httpClient(`${BASE_URL}/inventory`),
+    findAllInventories: () => cachedRequest(`${BASE_URL}/inventory`, () => httpClient(`${BASE_URL}/inventory`)),
 
     findInventoryByBookId: bookId => httpClient(`${BASE_URL}/inventory/${bookId}`),
 
-    registerInventory: payload =>
-        httpClient(`${BASE_URL}/inventory`, {
+    registerInventory: async payload => {
+        const saved = await httpClient(`${BASE_URL}/inventory`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        })
+        });
+        invalidateHttpCache(BASE_URL);
+        return saved;
+    }
 };

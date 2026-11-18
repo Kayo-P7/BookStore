@@ -4,13 +4,18 @@ import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTable
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
 import { SkeletonTable } from '../../components/ui/skeleton';
-import { CustomerFormModal } from './CustomerFormModal';
-import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
 import { customerService } from '../../services/customerService';
 import { Customer } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { maskPhone } from '../../utils/masks';
+
+const CustomerFormModal = React.lazy(() =>
+    import('./CustomerFormModal').then(m => ({ default: m.CustomerFormModal }))
+);
+const ConfirmDialog = React.lazy(() =>
+    import('../../components/ui/confirm-dialog').then(m => ({ default: m.ConfirmDialog }))
+);
 
 const allColumns: ColumnDefinition[] = [
     { key: 'id', label: 'ID' },
@@ -102,17 +107,21 @@ export function CustomersPage() {
         }
     }
 
-    const filteredCustomers = customers.filter(c => {
-        const q = searchTerm.toLowerCase();
-        return (
+    const filteredCustomers = React.useMemo(() => {
+        const q = searchTerm.toLowerCase().trim();
+        if (!q) return customers;
+        return customers.filter(c =>
             c.name?.toLowerCase().includes(q) ||
             c.email?.toLowerCase().includes(q) ||
             c.city?.toLowerCase().includes(q) ||
             c.phone?.includes(q)
         );
-    });
+    }, [customers, searchTerm]);
 
-    const paginatedCustomers = filteredCustomers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const paginatedCustomers = React.useMemo(
+        () => filteredCustomers.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [filteredCustomers, currentPage, pageSize]
+    );
 
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
@@ -240,26 +249,34 @@ export function CustomersPage() {
                 )}
             </RecordsTableLayout>
 
-            <CustomerFormModal
-                isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setEditingCustomer(null);
-                }}
-                onSubmit={handleSaveCustomer}
-                editingCustomer={editingCustomer}
-            />
+            {isModalOpen && (
+                <React.Suspense fallback={null}>
+                    <CustomerFormModal
+                        isOpen={isModalOpen}
+                        onClose={() => {
+                            setIsModalOpen(false);
+                            setEditingCustomer(null);
+                        }}
+                        onSubmit={handleSaveCustomer}
+                        editingCustomer={editingCustomer}
+                    />
+                </React.Suspense>
+            )}
 
-            <ConfirmDialog
-                isOpen={Boolean(customerToDelete)}
-                title="Excluir Cliente"
-                description={`Deseja realmente excluir "${customerToDelete?.name}"? Esta ação removerá o cadastro permanentemente e é irreversível.`}
-                confirmText="Excluir Permanentemente"
-                cancelText="Cancelar"
-                loading={deleting}
-                onConfirm={handleConfirmDelete}
-                onCancel={() => setCustomerToDelete(null)}
-            />
+            {customerToDelete && (
+                <React.Suspense fallback={null}>
+                    <ConfirmDialog
+                        isOpen={Boolean(customerToDelete)}
+                        title="Excluir Cliente"
+                        description={`Deseja realmente excluir "${customerToDelete?.name}"? Esta ação removerá o cadastro permanentemente e é irreversível.`}
+                        confirmText="Excluir Permanentemente"
+                        cancelText="Cancelar"
+                        loading={deleting}
+                        onConfirm={handleConfirmDelete}
+                        onCancel={() => setCustomerToDelete(null)}
+                    />
+                </React.Suspense>
+            )}
         </div>
     );
 }

@@ -22,6 +22,38 @@ export default defineConfig(({ mode }) => {
                 '@': path.resolve(process.cwd(), './src')
             }
         },
+        build: {
+            rolldownOptions: {
+                output: {
+                    codeSplitting: {
+                        minSize: 15000,
+                        groups: [
+                            {
+                                name: 'vendor-forms',
+                                test: /[\\/]node_modules[\\/](zod|react-hook-form|@hookform)[\\/]/,
+                                priority: 30
+                            },
+                            {
+                                name: 'vendor-react',
+                                test: /[\\/]node_modules[\\/](react|react-dom|react-router|scheduler)[\\/]/,
+                                priority: 20
+                            },
+                            {
+                                name: 'vendor-ui',
+                                test: /[\\/]node_modules[\\/](lucide-react|@base-ui|clsx|tailwind-merge)[\\/]/,
+                                priority: 10
+                            },
+                            {
+                                name: 'app-shared',
+                                test: /[\\/]src[\\/](components|services|utils|layouts)[\\/]/,
+                                minShareCount: 2,
+                                priority: 5
+                            }
+                        ]
+                    }
+                }
+            }
+        },
         server: {
             host: '0.0.0.0',
             port: reactPort,

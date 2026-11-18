@@ -5,11 +5,15 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '.
 import { Button } from '../../components/ui/button';
 import { SkeletonTable } from '../../components/ui/skeleton';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
-import { LoanFormModal } from './LoanFormModal';
 import { loanService } from '../../services/loanService';
 import { bookService } from '../../services/bookService';
 import { customerService } from '../../services/customerService';
+import { formatShortDate } from '../../utils/formatters';
 import { Loan, Book, BookLoanInventory, Customer } from '../../types';
+
+const LoanFormModal = React.lazy(() =>
+    import('./LoanFormModal').then(m => ({ default: m.LoanFormModal }))
+);
 
 const columns: ColumnDefinition[] = [
     { key: 'id', label: 'ID' },
@@ -21,14 +25,6 @@ const columns: ColumnDefinition[] = [
     { key: 'status', label: 'Status' },
     { key: 'actions', label: 'Ações' }
 ];
-
-function formatLoanDate(value: string | number[] | null | undefined) {
-    if (!value) return '—';
-    const date = Array.isArray(value)
-        ? new Date(value[0], (value[1] || 1) - 1, value[2] || 1)
-        : new Date(`${value}`.length === 10 ? `${value}T00:00:00` : value);
-    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('pt-BR');
-}
 
 export function LoansPage() {
     const [loans, setLoans] = React.useState<Loan[]>([]);
@@ -50,7 +46,7 @@ export function LoansPage() {
             const [loanData, inventoryData, bookData, customerData] = await Promise.all([
                 loanService.findAll(),
                 loanService.findAllInventories().catch(() => []),
-                bookService.findAll(),
+                bookService.findSummaryList(),
                 customerService.findAll()
             ]);
             if (Array.isArray(loanData)) setLoans(loanData);
@@ -67,13 +63,23 @@ export function LoansPage() {
 
     React.useEffect(() => { loadData(); }, [loadData]);
 
-    function customerName(id: number) {
-        return customers.find(customer => customer.id === id)?.name || `Cliente #${id}`;
-    }
+    const customerMap = React.useMemo(
+        () => new Map(customers.map(customer => [Number(customer.id), customer.name])),
+        [customers]
+    );
+    const bookMap = React.useMemo(
+        () => new Map(books.map(book => [Number(book.id), book.title])),
+        [books]
+    );
 
-    function bookTitle(id: number) {
-        return books.find(book => book.id === id)?.title || `Livro #${id}`;
-    }
+    const customerName = React.useCallback(
+        (id: number) => customerMap.get(Number(id)) || `Cliente #${id}`,
+        [customerMap]
+    );
+    const bookTitle = React.useCallback(
+        (id: number) => bookMap.get(Number(id)) || `Livro #${id}`,
+        [bookMap]
+    );
 
     async function refreshInventories() {
         const updatedInventories = await loanService.findAllInventories().catch(() => null);
@@ -116,15 +122,25 @@ export function LoansPage() {
             : [...previous, key]);
     }
 
-    const filteredLoans = loans.filter(loan => {
+    const filteredLoans = React.useMemo(() => {
         const query = searchTerm.toLowerCase().trim();
-        return !query || customerName(loan.customerId).toLowerCase().includes(query)
-            || bookTitle(loan.bookId).toLowerCase().includes(query)
-            || String(loan.id).includes(query)
-            || loan.status.toLowerCase().includes(query);
-    });
-    const paginatedLoans = filteredLoans.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-    const activeCount = loans.filter(loan => loan.status === 'ACTIVE').length;
+        if (!query) return loans;
+        return loans.filter(loan =>
+            customerName(loan.customerId).toLowerCase().includes(query) ||
+            bookTitle(loan.bookId).toLowerCase().includes(query) ||
+            String(loan.id).includes(query) ||
+            loan.status.toLowerCase().includes(query)
+        );
+    }, [loans, searchTerm, customerName, bookTitle]);
+
+    const paginatedLoans = React.useMemo(
+        () => filteredLoans.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [filteredLoans, currentPage, pageSize]
+    );
+    const activeCount = React.useMemo(
+        () => loans.reduce((acc, loan) => acc + (loan.status === 'ACTIVE' ? 1 : 0), 0),
+        [loans]
+    );
 
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
@@ -160,9 +176,9 @@ export function LoansPage() {
                                     {visibleColumns.includes('id') && <TableCell className="font-mono text-xs text-muted-foreground">#{loan.id}</TableCell>}
                                     {visibleColumns.includes('customer') && <TableCell className="font-semibold text-foreground">{customerName(loan.customerId)}</TableCell>}
                                     {visibleColumns.includes('book') && <TableCell className="text-sm text-muted-foreground">{bookTitle(loan.bookId)}</TableCell>}
-                                    {visibleColumns.includes('loanDate') && <TableCell className="text-xs text-muted-foreground">{formatLoanDate(loan.loanDate)}</TableCell>}
-                                    {visibleColumns.includes('dueDate') && <TableCell className="text-xs text-muted-foreground">{formatLoanDate(loan.dueDate)}</TableCell>}
-                                    {visibleColumns.includes('returnDate') && <TableCell className="text-xs text-muted-foreground">{formatLoanDate(loan.returnDate)}</TableCell>}
+                                    {visibleColumns.includes('loanDate') && <TableCell className="text-xs text-muted-foreground">{formatShortDate(loan.loanDate)}</TableCell>}
+                                    {visibleColumns.includes('dueDate') && <TableCell className="text-xs text-muted-foreground">{formatShortDate(loan.dueDate)}</TableCell>}
+                                    {visibleColumns.includes('returnDate') && <TableCell className="text-xs text-muted-foreground">{formatShortDate(loan.returnDate)}</TableCell>}
                                     {visibleColumns.includes('status') && <TableCell>
                                         <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${active ? 'bg-amber-50 text-amber-700' : loan.status === 'RETURNED' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                                             {loan.status === 'ACTIVE' ? 'Ativo' : loan.status === 'RETURNED' ? 'Devolvido' : 'Cancelado'}
@@ -181,8 +197,18 @@ export function LoansPage() {
                     </Table>
                 )}
             </RecordsTableLayout>
-            <LoanFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}
-                onSubmit={handleCreate} customers={customers} books={books} inventories={inventories} />
+            {isModalOpen && (
+                <React.Suspense fallback={null}>
+                    <LoanFormModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        onSubmit={handleCreate}
+                        customers={customers}
+                        books={books}
+                        inventories={inventories}
+                    />
+                </React.Suspense>
+            )}
         </div>
     );
 }

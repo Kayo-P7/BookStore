@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { authService } from '../services/authService';
+import { invalidateHttpCache } from '../services/httpClient';
 import { UserRole } from '../types';
 
 export interface AuthUser {
@@ -72,6 +73,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const logout = React.useCallback(() => {
+        invalidateHttpCache();
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         setToken(null);

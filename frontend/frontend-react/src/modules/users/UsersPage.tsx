@@ -4,12 +4,18 @@ import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTable
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { Button } from '../../components/ui/button';
 import { SkeletonTable } from '../../components/ui/skeleton';
-import { ConfirmDialog } from '../../components/ui/confirm-dialog';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
-import { UserFormModal } from './UserFormModal';
 import { userService } from '../../services/userService';
+import { formatShortDate } from '../../utils/formatters';
 import { useAuth } from '../../context/AuthContext';
 import { SystemUser, UserFormData } from '../../types';
+
+const UserFormModal = React.lazy(() =>
+    import('./UserFormModal').then(m => ({ default: m.UserFormModal }))
+);
+const ConfirmDialog = React.lazy(() =>
+    import('../../components/ui/confirm-dialog').then(m => ({ default: m.ConfirmDialog }))
+);
 
 const allColumns: ColumnDefinition[] = [
     { key: 'user', label: 'Usuário' },
@@ -163,28 +169,21 @@ export function UsersPage() {
         return filteredUsers.slice(start, start + pageSize);
     }, [filteredUsers, currentPage, pageSize]);
 
-    // contadores analiticos do topo
-    const adminCount = users.filter(u => u.role.includes('ADMIN')).length;
-    const sellerCount = users.filter(u => !u.role.includes('ADMIN')).length;
-    const activeCount = users.filter(u => u.active).length;
+    // contadores analiticos do topo em passe unico memoizado
+    const { adminCount, sellerCount, activeCount } = React.useMemo(() => {
+        let admins = 0;
+        let active = 0;
+        for (const u of users) {
+            if (u.role.includes('ADMIN')) admins++;
+            if (u.active) active++;
+        }
+        return { adminCount: admins, sellerCount: users.length - admins, activeCount: active };
+    }, [users]);
 
     function getInitials(name: string) {
         const parts = name.trim().split(/\s+/);
         if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    }
-
-    function formatDate(dateStr?: string) {
-        if (!dateStr) return '—';
-        try {
-            return new Intl.DateTimeFormat('pt-BR', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            }).format(new Date(dateStr));
-        } catch {
-            return dateStr;
-        }
     }
 
     return (
@@ -365,7 +364,7 @@ export function UsersPage() {
                                         {/* data de criacao */}
                                         {visibleColumns.includes('createdAt') && (
                                             <TableCell className="text-xs text-[#737373]">
-                                                {formatDate(user.createdAt)}
+                                                {formatShortDate(user.createdAt)}
                                             </TableCell>
                                         )}
 
@@ -436,26 +435,34 @@ export function UsersPage() {
             </RecordsTableLayout>
 
             {/* modal de cadastro / edicao */}
-            <UserFormModal
-                isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setEditingUser(null);
-                }}
-                onSubmit={handleSaveUser}
-                editingUser={editingUser}
-            />
+            {isModalOpen && (
+                <React.Suspense fallback={null}>
+                    <UserFormModal
+                        isOpen={isModalOpen}
+                        onClose={() => {
+                            setIsModalOpen(false);
+                            setEditingUser(null);
+                        }}
+                        onSubmit={handleSaveUser}
+                        editingUser={editingUser}
+                    />
+                </React.Suspense>
+            )}
 
             {/* dialog de confirmacao para exclusao */}
-            <ConfirmDialog
-                isOpen={Boolean(userToDelete)}
-                onClose={() => setUserToDelete(null)}
-                onConfirm={handleConfirmDelete}
-                title="Excluir Usuário"
-                description={`Tem certeza que deseja remover o usuário "${userToDelete?.name}" (${userToDelete?.email})? Esta ação não pode ser desfeita.`}
-                confirmText={deleting ? 'Excluindo...' : 'Sim, Excluir'}
-                destructive
-            />
+            {userToDelete && (
+                <React.Suspense fallback={null}>
+                    <ConfirmDialog
+                        isOpen={Boolean(userToDelete)}
+                        onClose={() => setUserToDelete(null)}
+                        onConfirm={handleConfirmDelete}
+                        title="Excluir Usuário"
+                        description={`Tem certeza que deseja remover o usuário "${userToDelete?.name}" (${userToDelete?.email})? Esta ação não pode ser desfeita.`}
+                        confirmText={deleting ? 'Excluindo...' : 'Sim, Excluir'}
+                        destructive
+                    />
+                </React.Suspense>
+            )}
         </div>
     );
 }

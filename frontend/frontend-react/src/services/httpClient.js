@@ -1,3 +1,31 @@
+// cache leve em memoria com deduplicacao de requisicoes em voo para transicoes instantaneas entre abas
+const responseCache = new Map();
+const inflightRequests = new Map();
+const MAX_CACHE_SIZE = 64;
+
+function buildCacheKey(url) {
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('bookstore_token') || 'anon' : 'anon';
+    return `${token}:${url}`;
+}
+
+export function invalidateHttpCache(urlPrefix = '') {
+    if (!urlPrefix) {
+        responseCache.clear();
+        inflightRequests.clear();
+        return;
+    }
+    for (const key of responseCache.keys()) {
+        if (key.includes(urlPrefix)) {
+            responseCache.delete(key);
+        }
+    }
+    for (const key of inflightRequests.keys()) {
+        if (key.includes(urlPrefix)) {
+            inflightRequests.delete(key);
+        }
+    }
+}
+
 // extrai mensagem legivel de respostas json ou problem detail sem perder o status http
 function extractErrorMessage(body, status) {
     if (!body) return `erro http ${status}`;
@@ -30,6 +58,7 @@ export async function httpClient(url, options = {}) {
     });
 
     if (response.status === 401 && !url.includes('/api/auth/login')) {
+        invalidateHttpCache();
         if (typeof localStorage !== 'undefined') {
             localStorage.removeItem('bookstore_token');
             localStorage.removeItem('bookstore_user');
@@ -48,4 +77,38 @@ export async function httpClient(url, options = {}) {
 
     const body = await response.text();
     return body ? JSON.parse(body) : null;
+}
+
+// executa consulta cacheavel deduplicando chamadas simultaneas para a mesma rota
+export function cachedRequest(cacheKeySuffix, fetcher, ttlMs = 30000) {
+    const key = buildCacheKey(cacheKeySuffix);
+    const now = Date.now();
+    const cached = responseCache.get(key);
+    if (cached && cached.expiresAt > now) {
+        return Promise.resolve(cached.data);
+    }
+
+    const inflight = inflightRequests.get(key);
+    if (inflight) {
+        return inflight;
+    }
+
+    const promise = Promise.resolve()
+        .then(fetcher)
+        .then(data => {
+            if (responseCache.size >= MAX_CACHE_SIZE) {
+                const oldestKey = responseCache.keys().next().value;
+                if (oldestKey) responseCache.delete(oldestKey);
+            }
+            responseCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+            inflightRequests.delete(key);
+            return data;
+        })
+        .catch(err => {
+            inflightRequests.delete(key);
+            throw err;
+        });
+
+    inflightRequests.set(key, promise);
+    return promise;
 }

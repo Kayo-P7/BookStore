@@ -58,7 +58,15 @@ export function AppLayout() {
                     )}
                 >
                     <div key={location.pathname} className="w-full animate-page-spring">
-                        <Outlet />
+                        <React.Suspense
+                            fallback={
+                                <div className="flex items-center justify-center py-12 text-xs text-muted-foreground">
+                                    Carregando módulo...
+                                </div>
+                            }
+                        >
+                            <Outlet />
+                        </React.Suspense>
                     </div>
                 </main>
             </div>

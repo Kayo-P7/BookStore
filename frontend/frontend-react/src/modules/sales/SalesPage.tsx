@@ -3,13 +3,16 @@ import { useLocation } from 'react-router-dom';
 import { RecordsTableLayout, ColumnDefinition } from '../../layouts/RecordsTableLayout';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '../../components/ui/table';
 import { SkeletonTable } from '../../components/ui/skeleton';
-import { SaleFormModal } from './SaleFormModal';
 import { ScreenNotice, useScreenNotice } from '../../components/ui/screen-notice';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { saleService } from '../../services/saleService';
 import { bookService } from '../../services/bookService';
 import { customerService } from '../../services/customerService';
 import { Sale, Book, Customer } from '../../types';
+
+const SaleFormModal = React.lazy(() =>
+    import('./SaleFormModal').then(m => ({ default: m.SaleFormModal }))
+);
 
 const allColumns: ColumnDefinition[] = [
     { key: 'id', label: 'ID Pedido' },
@@ -54,7 +57,7 @@ export function SalesPage() {
         try {
             const [salesData, booksData, customersData] = await Promise.all([
                 saleService.findAll(),
-                bookService.findAll(),
+                bookService.findSummaryList(),
                 customerService.findAll()
             ]);
             if (Array.isArray(salesData)) setSales(salesData);
@@ -87,9 +90,14 @@ export function SalesPage() {
                 quantity: saleData.quantity
             });
             setSales(prev => [...prev, created]);
-            // atualiza livros para refletir o novo estoque
-            const booksData = await bookService.findAll();
-            if (Array.isArray(booksData)) setBooks(booksData);
+            // atualiza estoque em memoria sem re-baixar todo o catalogo pela rede
+            setBooks(prev =>
+                prev.map(b =>
+                    Number(b.id) === Number(saleData.bookId)
+                        ? { ...b, stock: Math.max(0, Number(b.stock) - saleData.quantity) }
+                        : b
+                )
+            );
             showNotice('Venda registrada com sucesso.', 'success');
             return true;
         } catch (err) {
@@ -99,22 +107,38 @@ export function SalesPage() {
         }
     }
 
-    function customerName(id: number) {
-        return customers.find(c => String(c.id) === String(id))?.name || `Cliente #${id}`;
-    }
+    const customerMap = React.useMemo(
+        () => new Map(customers.map(c => [Number(c.id), c.name])),
+        [customers]
+    );
+    const bookMap = React.useMemo(
+        () => new Map(books.map(b => [Number(b.id), b.title])),
+        [books]
+    );
 
-    function bookTitle(id: number) {
-        return books.find(b => String(b.id) === String(id))?.title || `Livro #${id}`;
-    }
+    const customerName = React.useCallback(
+        (id: number) => customerMap.get(Number(id)) || `Cliente #${id}`,
+        [customerMap]
+    );
+    const bookTitle = React.useCallback(
+        (id: number) => bookMap.get(Number(id)) || `Livro #${id}`,
+        [bookMap]
+    );
 
-    const filteredSales = sales.filter(s => {
-        const q = searchTerm.toLowerCase();
-        const cName = customerName(s.customerId).toLowerCase();
-        const bTitle = bookTitle(s.bookId).toLowerCase();
-        return cName.includes(q) || bTitle.includes(q) || String(s.id).includes(q);
-    });
+    const filteredSales = React.useMemo(() => {
+        const q = searchTerm.toLowerCase().trim();
+        if (!q) return sales;
+        return sales.filter(s => {
+            const cName = customerName(s.customerId).toLowerCase();
+            const bTitle = bookTitle(s.bookId).toLowerCase();
+            return cName.includes(q) || bTitle.includes(q) || String(s.id).includes(q);
+        });
+    }, [sales, searchTerm, customerName, bookTitle]);
 
-    const paginatedSales = filteredSales.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const paginatedSales = React.useMemo(
+        () => filteredSales.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+        [filteredSales, currentPage, pageSize]
+    );
 
     return (
         <div className="space-y-6 animate-in fade-in duration-300">
@@ -203,13 +227,17 @@ export function SalesPage() {
                 )}
             </RecordsTableLayout>
 
-            <SaleFormModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleRegisterSale}
-                customers={customers}
-                books={books}
-            />
+            {isModalOpen && (
+                <React.Suspense fallback={null}>
+                    <SaleFormModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        onSubmit={handleRegisterSale}
+                        customers={customers}
+                        books={books}
+                    />
+                </React.Suspense>
+            )}
         </div>
     );
 }

@@ -1,34 +1,46 @@
-import { httpClient } from './httpClient';
+import { httpClient, cachedRequest, invalidateHttpCache } from './httpClient';
 
 const BASE_URL = '/api/customers';
 
 // servico para gerenciamento de clientes e consulta de endereco
 export const customerService = {
-    // lista todos os clientes
-    findAll: () => httpClient(BASE_URL),
+    // lista todos os clientes com cache curto e deduplicacao
+    findAll: () => cachedRequest(BASE_URL, () => httpClient(BASE_URL)),
 
-    // consulta endereco via viacep
-    lookupCep: cep => httpClient(`${BASE_URL}/cep/${cep}`),
+    // consulta endereco via viacep com cache de 10 minutos
+    lookupCep: cep => {
+        const cleanCep = String(cep || '').replace(/\D/g, '');
+        return cachedRequest(`${BASE_URL}/cep/${cleanCep}`, () => httpClient(`${BASE_URL}/cep/${cleanCep}`), 600000);
+    },
 
     // cria um novo cliente
-    create: customer =>
-        httpClient(BASE_URL, {
+    create: async customer => {
+        const created = await httpClient(BASE_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(customer)
-        }),
+        });
+        invalidateHttpCache(BASE_URL);
+        return created;
+    },
 
     // atualiza dados de cliente existente
-    update: (id, customer) =>
-        httpClient(`${BASE_URL}/${id}`, {
+    update: async (id, customer) => {
+        const updated = await httpClient(`${BASE_URL}/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(customer)
-        }),
+        });
+        invalidateHttpCache(BASE_URL);
+        return updated;
+    },
 
     // exclui cliente por identificador
-    delete: id =>
-        httpClient(`${BASE_URL}/${id}`, {
+    delete: async id => {
+        const res = await httpClient(`${BASE_URL}/${id}`, {
             method: 'DELETE'
-        })
+        });
+        invalidateHttpCache(BASE_URL);
+        return res;
+    }
 };
